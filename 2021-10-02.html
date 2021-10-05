@@ -1,0 +1,69 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+ctx.fillStyle = '#fff';
+ctx.strokeStyle = "#fcc";
+ctx.lineWidth = 2;
+const n = 200;
+
+function addCircle(x, y){
+    ctx.beginPath();
+    ctx.arc(x, y, 1, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.fill();
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+function addLine(p1, p2){
+    ctx.beginPath();
+    ctx.moveTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+    ctx.stroke();
+}
+
+let arr = [];
+for(let i = 0; i < n; i ++) {
+    x = getRandomInt(width);
+    y = getRandomInt(height);
+    arr.push([x, y]);
+    addCircle(x, y);
+}
+
+for(let i = 0; i < n; i ++) {
+    let p1 = arr[i];
+    for(let j = i + 1; j < n; j ++) {
+        let p2 = arr[j];
+        let d = dist(p1, p2);
+        if(d < 100) {
+            let alpha = (100 - d) / 100;
+            ctx.strokeStyle = 'rgba(255,255,255,'+alpha+')';
+            addLine(p1, p2);
+        }
+    }
+}
+
+    </script>
+</body>
+</html>
