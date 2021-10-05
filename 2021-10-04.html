@@ -1,0 +1,125 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+ctx.fillStyle = '#ccc';
+ctx.strokeStyle = "#ccf";
+ctx.lineWidth = 2;
+const n = 400;
+const minSpeed = 5;
+const maxSpeed = 15;
+const queSize = 1;
+const force = 0.02;
+
+function addCircle(x, y){
+    ctx.beginPath();
+    ctx.arc(x, y, 1, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.fill();
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+function drawCircles(arr){
+    for(let i = 0; i < n; i ++) {
+        let p = arr[i];
+        addCircle(p[0], p[1]);
+    }
+}
+
+function moveCircle(arr){
+    let narr = [];
+    for(let i = 0; i < n; i ++) {
+        let p = arr[i];
+        let x = p[0] + p[2];
+        let y = p[1] + p[3];
+        if(x < 0 || x >= width) {
+            x = p[0];
+            p[2] *= -1;
+        }
+        if(y < 0 || y >= height) {
+            y = p[1];
+            p[3] *= -1;
+        }
+        narr.push([x, y, p[2], p[3]]);
+    }
+    return narr;
+}
+
+function updateCircleSpeed(arr){
+    let narr = arr;
+    for(let i = 0; i < n; i ++) {
+        let p1 = narr[i];
+        for(let j = i + 1; j < n; j ++) {
+            let p2 = narr[j];
+            let d = Math.max(0.01, dist(p1, p2));
+            if(d < 50) {
+                narr[i][2] = p1[2]*0.99 + p2[2]*0.01 + ((p1[0] - p2[0]) / d) * force;
+                narr[i][3] = p1[3]*0.99 + p2[3]*0.01 + ((p1[1] - p2[1]) / d) * force;
+                narr[j][2] = p1[2]*0.01 + p2[2]*0.99 + ((p2[0] - p1[0]) / d) * force;
+                narr[j][3] = p1[3]*0.01 + p2[3]*0.99 + ((p2[1] - p1[1]) / d) * force;
+            }
+        }
+    }
+    for(let i = 0; i < n; i ++) {
+        let p = narr[i];
+        let s = Math.max(0.01, Math.sqrt(p[2] * p[2] + p[3] * p[3]));
+        if(s < minSpeed){
+            narr[i][2] = Math.min(p[2] / s * minSpeed, maxSpeed);
+            narr[i][3] = Math.min(p[3] / s * minSpeed, maxSpeed);
+        }
+    }
+    return narr;
+}
+
+let arr = [];
+for(let i = 0; i < n; i ++) {
+    x = getRandomInt(width);
+    y = getRandomInt(height);
+    s = getRandomInt(maxSpeed - minSpeed) + minSpeed;
+    r = getRandomInt(360);
+    dx = s * Math.sin(r * Math.PI / 180);
+    dy = s * Math.cos(r * Math.PI / 180);
+    arr.push([x, y, dx, dy]);
+}
+
+let qarr = [];
+function loop(){
+    arr = moveCircle(arr);
+    arr = updateCircleSpeed(arr);
+    ctx.clearRect(0, 0, width, height);
+    qarr.push(arr.slice());
+    if(qarr.length > queSize) {
+        qarr.shift();
+    }
+    for(let i = 0; i < qarr.length; i ++) {
+        drawCircles(qarr[i]);
+    }
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+    </script>
+</body>
+</html>
