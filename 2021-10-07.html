@@ -16,36 +16,26 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const n = 100;
+const n = 500;
 const minSpeed = 6;
-const maxSpeed = 20;
+const maxSpeed = 14;
 const rainRand = 0.5;
-const fireLength = 5;
-const rainDegree = 360;
+const rainLength = 0.8;
+const rainDegree = 30;
 const rainProb = 0.05;
-
-function addCircle(x, y, l, c){
-    let b = Math.floor(c * 10) - l;
-    let g = Math.floor(c * 20) - l;
-    ctx.fillStyle = 'rgba(255,'+g+','+b+',0.5)';
-    ctx.beginPath();
-    ctx.arc(x, y, l, 0, 2 * Math.PI);
-    ctx.fill();
-}
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
-function dist(p1, p2) {
-    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
-}
-
-
-function drawCircles(arr){
+function drawLines(arr){
     for(let i = 0; i < n; i ++) {
         let p = arr[i];
-        addCircle(p[0], p[1], p[4], p[5]);
+        ctx.beginPath();
+        ctx.moveTo(p[0], p[1]);
+        ctx.lineTo(p[0] + p[4] * p[2],
+            p[1] + p[4] * p[3]);
+        ctx.stroke();
     }
 }
 
@@ -53,7 +43,7 @@ function getMotion(){
     let s = getRandomInt(maxSpeed - minSpeed) + minSpeed;
     let r = getRandomInt(rainDegree) - rainDegree / 2;
     let dx = s * Math.sin(r * Math.PI / 180);
-    let dy = s * Math.cos(r * Math.PI / 180);
+    let dy = Math.abs(s * Math.cos(r * Math.PI / 180));
     return [dx, dy];
 }
 
@@ -61,60 +51,41 @@ function moveNodes(arr){
     let narr = [];
     for(let i = 0; i < n; i ++) {
         let p = arr[i];
-        let x = p[0] + p[2] / Math.max(1, p[4]);
-        let y = p[1] + p[3] / Math.max(1, p[4]);
-        p[3] -= 1;
-        p[2] += ((width / 2) - p[0]) * 0.01;
-        p[4] *= 0.99;
-        if(y < 0 || y > height) {
-            x = width / 2;
-            y = height / 3 * 2;
-            p[4] = Math.random() * fireLength * fireLength;
+        let x = p[0] + p[2];
+        let y = p[1] + p[3];
+        if(y >= height) {
+            x = getRandomInt(width);
+            y = -5;
+            p[4] = Math.random() * rainLength;
         }
         if(Math.random() < rainProb) {
             let tmp = getMotion();
             p[2] = tmp[0];
             p[3] = tmp[1];
         }
-        narr.push([x, y, p[2], p[3], p[4], 0]);
+        narr.push([x, y, p[2], p[3], p[4]]);
     }
     return narr;
 }
 
-function countNodes(arr){
-    for(let i = 0; i < n; i ++) {
-        let p1 = arr[i];
-        for(let j = i + 1; j < n; j ++) {
-            let p2 = arr[j];
-            let d = dist(p1, p2);
-            if(d < 50) {
-                arr[i][5] += 1;
-                arr[j][5] += 1;
-            }
-        }
-    }
-    return arr;
-}
-
 let arr = [];
 for(let i = 0; i < n; i ++) {
-    let x = width / 2;
-    let y = height / 3 * 2;
+    let x = getRandomInt(width);
+    let y = getRandomInt(height);
     let tmp = getMotion();
-    l = Math.random() * fireLength * fireLength;
-    arr.push([x, y, tmp[0], tmp[1], l, 0]);
+    l = Math.random() * rainLength;
+    arr.push([x, y, tmp[0], tmp[1], l]);
 }
 
 let qarr = [];
 function loop(time){
     arr = moveNodes(arr);
-    arr = countNodes(arr);
 
     ctx.clearRect(0, 0, width, height);
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.strokeStyle = 'rgba(174,184,194,0.6)';
-    drawCircles(arr);
+    drawLines(arr);
     ctx.fill();
     requestAnimationFrame(loop);
 }
