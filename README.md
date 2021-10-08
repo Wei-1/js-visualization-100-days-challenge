@@ -9,3 +9,4 @@ Some testing styles for other personal projects
  - [2021-10-05](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-05.html)
  - [2021-10-06](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-06.html)
  - [2021-10-07](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-07.html)
+ - [2021-10-08](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-08.html)
