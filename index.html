@@ -1,5 +1,5 @@
 <html>
-<body style="background-color:#fff;">
+<body style="background-color:#012;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousedown="clickB(event)"></canvas>
     <script>
 
@@ -16,87 +16,51 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const blockSize = 10;
-const blockLength = 5;
-const blockWidth = width / blockSize;
-const blockHeight = height / blockSize;
-const blockRatio = 0.05;
-const waveLength = 400;
-const waveLimit = 50;
-const waveSpeed = 3;
+const n = 80;
+const petalNMin = 3;
+const petalNMax = 12;
+const petalLMin = 10;
+const petalLMax = 60;
+const petalRMin = 0.5;
+const petalRMax = 2;
+const centerLMin = 10;
+const centerLMax = 20;
+const centerDMin = 0;
+const centerDMax = centerLMin;
 
-function dist(p1, p2) {
-    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
 }
 
-function drawBlocks(blocks){
-    for(let i = 0; i < blocks.length; i ++){
-        let b = blocks[i];
-        let a = Math.max(0, 1 - b[4]);
-        ctx.fillStyle = 'rgba(0,0,0,'+a+')';
-        ctx.fillRect(b[0] + b[2] * blockRatio, b[1] + b[3] * blockRatio, blockLength, blockLength);
+for(let i = 0; i < n; i ++){
+    let x = getRandomInt(width);
+    let y = getRandomInt(height);
+    let rad = getRandomInt(360) * Math.PI / 180;
+    let centerL = getRandomInt(centerLMax, centerLMin);
+    let centerD = getRandomInt(centerDMax, centerDMin);
+
+    let petalN = getRandomInt(petalNMax, petalNMin);
+    let petalL = getRandomInt(petalLMax, petalLMin);
+    let petalR = getRandomInt(petalRMax, petalRMin);
+    let petalW = 2 * Math.PI * (centerD + petalL / 2) / petalN * petalR;
+    ctx.fillStyle = 'rgba('+getRandomInt(255,50)+','+
+        getRandomInt(150,0)+','+
+        getRandomInt(200,50)+',0.9)';
+    for(let j = 0; j < petalN; j ++){
+        let ang = rad + 2 * Math.PI / petalN * j;
+        let dx = (centerD + petalL) * Math.cos(ang);
+        let dy = (centerD + petalL) * Math.sin(ang);
+        ctx.beginPath();
+        ctx.ellipse(x + dx, y + dy, petalL, petalW, ang, 0, 2 * Math.PI);
+        ctx.fill();
     }
+    ctx.fillStyle = 'rgba('+getRandomInt(255,55)+','+
+        getRandomInt(150,0)+','+
+        getRandomInt(255,55)+',0.9)';
+    ctx.beginPath();
+    ctx.arc(x, y, centerL, 0, 2 * Math.PI);
+    ctx.fill();
 }
-
-function updateArr(arr){
-    let narr = [];
-    for(let i = 0; i < arr.length; i ++){
-        let p = arr[i];
-        p[2] += waveSpeed;
-        if(p[2] < waveLength){
-            narr.push(p);
-        }
-    }
-    return narr;
-}
-
-function updateBlocks(blocks){
-    for(let i = 0; i < blocks.length; i ++){
-        blocks[i][2] = 0;
-        blocks[i][3] = 0;
-        blocks[i][4] = 0;
-        let b = [blocks[i][0] + blockLength/2,
-            blocks[i][1] + blockLength/2];
-        for(let j = 0; j < arr.length; j ++){
-            let p = arr[j];
-            let d = Math.abs(p[2] - dist(b, p));
-            let r = (waveLength - p[2]) / waveLength;
-            if(d < waveLimit){
-                let rF = (waveLimit - d) * r / waveLimit;
-                blocks[i][2] += (p[0] - b[0]) * rF;
-                blocks[i][3] += (p[1] - b[1]) * rF;
-                blocks[i][4] += rF;
-            }
-        }
-    }
-    return blocks;
-}
-
-let arr = [];
-function clickB(e){
-    arr.push([e.x, e.y, 0]);
-}
-
-let blocks = [];
-for(let i = 0; i < blockWidth; i ++){
-    for(let j = 0; j < blockHeight; j ++){
-        let x = i * blockSize;
-        let y = j * blockSize;
-        blocks.push([x, y, 0, 0, 0]);
-    }
-}
-
-function loop(time){
-    arr = updateArr(arr);
-    blocks = updateBlocks(blocks);
-
-    ctx.clearRect(0, 0, width, height);
-    drawBlocks(blocks);
-    
-    requestAnimationFrame(loop);
-}
-
-loop(0);
 
     </script>
 </body>

@@ -10,4 +10,5 @@ Some testing styles for other personal projects
 1. [Rain](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-07.html)
 1. [Circle Fire](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-08.html)
 1. [Water Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-09.html)
-1. [Particle Wave](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Particle Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-10.html)
+1. [Flower](https://wei-1.github.io/js-visualization-100-days-challenge/)
