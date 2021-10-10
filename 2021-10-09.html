@@ -1,0 +1,154 @@
+<html>
+<head>
+    <style>
+#myProgress {
+    position: relative;
+    width: 200px;
+    height: 18px;
+    background-color: #666;
+    left: 50%;
+    top: 80%;
+    transform: translate(-50%, -50%);
+}
+
+#myBar {
+    position: absolute;
+    width: 0%;
+    height: 18px;
+    background-color: #0a0;
+}
+
+#myText {
+    position: absolute;
+    width: 200px;
+    height: 18px;
+    text-align: center;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    background-color: #0000;
+}
+    </style>
+</head>
+<body style="background-color:#012;">
+    <canvas id="canvas"></canvas>
+    <div id="myProgress" draggable="true" ondrag="clickR(event)" onclick="clickR(event)">
+        <div id="myBar"></div>
+        <div id="myText">0</div>
+    </div>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.style.position = "absolute";
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const initN = 10;
+const waveLength = 200;
+const waveRatio = 0.5;
+const gap = 10;
+
+const elemP = document.getElementById("myProgress");
+const elemB = document.getElementById("myBar");
+const elemT = document.getElementById("myText");
+const leftP = elemP.getBoundingClientRect().x;
+const widthP = elemP.getBoundingClientRect().width;
+
+var n = initN;
+
+function setPW(w){
+    elemB.style.width = w + "%";
+    elemT.innerHTML = w;
+    n = w;
+}
+function clickR(e){
+    let widthR = Math.round(((e.x - leftP + 1) / widthP * 100) / gap) * gap;
+    if(widthR >= 0 && widthR <= 100){
+        setPW(widthR);
+    }
+}
+setPW(initN);
+
+document.getElementById("myProgress").addEventListener("dragstart", function(e) {
+    var crt = this.cloneNode(true);
+    crt.style.opacity = 0;
+    e.dataTransfer.setDragImage(crt, 0, 0);
+}, false);
+
+function addWave(x, y, l){
+    let a = Math.max(0, (waveLength-l) / waveLength);
+    ctx.strokeStyle = 'rgba(255,255,255,'+a+')';
+    ctx.beginPath();
+    ctx.ellipse(x, y, l, l * waveRatio, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+}
+
+function getRandomInt(max){
+    return Math.floor(Math.random() * max);
+}
+
+function drawWaves(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let p = arr[i];
+        if(p[2] > 0) {
+            addWave(p[0], p[1], p[2]);
+        }
+    }
+}
+
+function updateNodes(arr){
+    let narr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let p = arr[i];
+        p[2] += 1;
+        if(p[2] > waveLength){
+            if(arr.length <= n){
+                p[0] = getRandomInt(width);
+                p[1] = getRandomInt(height);
+                p[2] = - getRandomInt(waveLength);
+                narr.push(p);
+            }
+        } else {
+            narr.push(p);
+        }
+    }
+    for(let i = arr.length; i < n; i ++){
+        let x = getRandomInt(width);
+        let y = getRandomInt(height);
+        let l = - getRandomInt(waveLength);
+        narr.push([x, y, l]);
+    }
+    return narr;
+}
+
+let arr = [];
+for(let i = 0; i < n; i ++){
+    let x = getRandomInt(width);
+    let y = getRandomInt(height);
+    let l = getRandomInt(waveLength);
+    arr.push([x, y, l]);
+}
+
+function loop(time){
+    arr = updateNodes(arr);
+
+    ctx.clearRect(0, 0, width, height);
+    drawWaves(arr);
+    
+    requestAnimationFrame(loop);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>
