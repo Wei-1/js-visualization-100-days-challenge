@@ -1,0 +1,67 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousedown="clickB(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const n = 80;
+const petalNMin = 3;
+const petalNMax = 12;
+const petalLMin = 10;
+const petalLMax = 60;
+const petalRMin = 0.5;
+const petalRMax = 2;
+const centerLMin = 10;
+const centerLMax = 20;
+const centerDMin = 0;
+const centerDMax = centerLMin;
+
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+for(let i = 0; i < n; i ++){
+    let x = getRandomInt(width);
+    let y = getRandomInt(height);
+    let rad = getRandomInt(360) * Math.PI / 180;
+    let centerL = getRandomInt(centerLMax, centerLMin);
+    let centerD = getRandomInt(centerDMax, centerDMin);
+
+    let petalN = getRandomInt(petalNMax, petalNMin);
+    let petalL = getRandomInt(petalLMax, petalLMin);
+    let petalR = getRandomInt(petalRMax, petalRMin);
+    let petalW = 2 * Math.PI * (centerD + petalL / 2) / petalN * petalR;
+    ctx.fillStyle = 'rgba('+getRandomInt(255,50)+','+
+        getRandomInt(150,0)+','+
+        getRandomInt(200,50)+',0.9)';
+    for(let j = 0; j < petalN; j ++){
+        let ang = rad + 2 * Math.PI / petalN * j;
+        let dx = (centerD + petalL) * Math.cos(ang);
+        let dy = (centerD + petalL) * Math.sin(ang);
+        ctx.beginPath();
+        ctx.ellipse(x + dx, y + dy, petalL, petalW, ang, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+    ctx.fillStyle = 'rgba('+getRandomInt(255,55)+','+
+        getRandomInt(150,0)+','+
+        getRandomInt(255,55)+',0.9)';
+    ctx.beginPath();
+    ctx.arc(x, y, centerL, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+    </script>
+</body>
+</html>
