@@ -12,4 +12,5 @@ Some testing styles for other personal projects
 1. [Water Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-09.html)
 1. [Particle Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-10.html)
 1. [Flower](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-11.html)
-1. [Radar Chart](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Radar Chart](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-12.html)
+1. [Taggle Switch Color](https://wei-1.github.io/js-visualization-100-days-challenge/)

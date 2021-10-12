@@ -1,0 +1,93 @@
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+</head>
+<body style="background-color:#fff;">
+    <div style="position:relative;height:400px;width:400px;top:0%;left:0%">
+        <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    </div>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+const n = getRandomInt(5, 2);
+const c = getRandomInt(8, 3);
+
+const labels = [
+    'Eating',
+    'Drinking',
+    'Sleeping',
+    'Designing',
+    'Coding',
+    'Cycling',
+    'Running'
+].slice(0, c);
+
+let datasets = [];
+for(let i = 0; i < n; i ++){
+    let r = getRandomInt(255);
+    let g = getRandomInt(255);
+    let b = getRandomInt(255);
+    let color = 'rgba('+r+','+g+','+b+',1)';
+    let bgColor = 'rgba('+r+','+g+','+b+',0.2)';
+    let values = [];
+    for(let j = 0; j < labels.length; j ++){
+        values.push(getRandomInt(100));
+    }
+    datasets.push({
+        label: "Data "+i,
+        data: values,
+        fill: true,
+        backgroundColor: bgColor,
+        borderColor: color,
+        pointBackgroundColor: color,
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: color
+    })
+}
+
+const data = {
+    labels: labels,
+    datasets: datasets
+};
+
+const config = {
+    type: 'radar',
+    data: data,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        elements: {
+            line: { borderWidth: 3 }
+        },
+        scales: {
+            r: {
+                angleLines: {
+                    display: false
+                },
+                suggestedMin: 0,
+                suggestedMax: 100
+            }
+        }
+    }
+};
+
+let myChart = new Chart(ctx, config);
+
+    </script>
+</body>
+</html>
