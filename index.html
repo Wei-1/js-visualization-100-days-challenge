@@ -1,52 +1,6 @@
 <html>
-<head>
-    <style>
-/* The switch - the box around the slider */
-.switch {
-  position: absolute;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
-/* Hide default HTML checkbox */
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-input:checked + .slider {
-  background-color: #ccc;
-}
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-    </style>
-</head>
 <body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -57,52 +11,76 @@ let height = window.innerHeight
 || document.documentElement.clientHeight
 || document.body.clientHeight;
 
-const colorUnit = 256 / 16;
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
 
-let bgRGB = [0, 0, 0];
-function createBtn(dx, dy, rgb){
-    let btn = document.createElement("label");
-    btn.className = "switch";
-    btn.style.left = width / 2 + dx;
-    btn.style.top = height / 2 + dy;
-    let checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.onclick = function(){
-        let ratio = -1;
-        if(checkbox.checked) ratio = 1;
-        for(let i = 0; i < 3; i ++){
-            bgRGB[i] += ratio * rgb[i];
-        }
-        document.body.style.backgroundColor = 'rgba('+bgRGB[0]+','+bgRGB[1]+','+bgRGB[2]+',1)';
-    };
-    let slider = document.createElement("span");
-    slider.className = "slider";
-    slider.style.backgroundColor = 'rgba('+rgb[0]*4+','+rgb[1]*4+','+rgb[2]*4+',1)';
-    btn.appendChild(checkbox);
-    btn.appendChild(slider);
-    document.body.appendChild(btn);
+const n = 30;
+const xShift = 100;
+const xRatio = 5;
+const msgRatio = 0.1;
+const envRatio = 0.3;
+const conRatio = 0.7;
+const timeRatio = 3000;
+const jRatio = 0.3;
+const j1Speed = 10;
+const j2Speed = 2;
+const blurScale = 10;
+const blurYScale = 0.8;
+const startX = -xShift;
+const startY = height / 2;
+const linePoints = (width + xShift) / xRatio;
+const RAD = Math.PI / 180;
+
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
 }
 
 let arr = [];
-for(let i = 0; i < 3; i ++){
-    for(let j = 0; j <= 3; j ++){
-        let a = [0, 0, 0];
-        a[i] = 4 - j;
-        a[(i + 1) % 3] = j;
-        arr.push(a);
+for(let i = 0; i < n; i ++){
+    let agl = getRandomInt(360);
+    let anr = Math.random() * msgRatio;
+    let dy = Math.random() * conRatio - conRatio / 2;
+    let br = getRandomInt(blurScale, 1);
+    dy = dy * (1 - blurYScale) + dy * br / blurScale * blurYScale;
+    arr.push([agl, anr, dy, br]);
+}
+
+function drawLines(arr, dt = 0){
+    for(let i = 0; i < n; i ++){
+        let agl = arr[i][0];
+        let anr = arr[i][1];
+        let dy = arr[i][2];
+        let br = arr[i][3];
+        let r = 255 - br * 20;
+        let g = 255;
+        let b = 255 - br * 2;
+        ctx.filter = 'blur('+br+'px)';
+        ctx.strokeStyle = 'rgba('+r+','+g+','+b+',1)';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        for(let j = 0; j < linePoints; j ++){
+            let x = startX + j * xRatio;
+            let j1 = (j + dt * (blurScale - br)) * j1Speed;
+            let j2 = (j + dt * jRatio) * j2Speed;
+            let y = startY + j * dy +
+                j * anr * Math.sin((j1 + agl) * RAD) +
+                j * envRatio * Math.sin(j2 * RAD);
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
     }
 }
 
-let n = arr.length;
-for(let i = 0; i < n; i ++){
-    let rad = Math.min(width, height) / 4;
-    let dx = rad * Math.sin(i / n * 2 * Math.PI);
-    let dy = rad * Math.cos(i / n * 2 * Math.PI);
-    let r = arr[i][0] * colorUnit;
-    let g = arr[i][1] * colorUnit;
-    let b = arr[i][2] * colorUnit;
-    createBtn(dx, dy, [r, g, b]);
+function loop(time){
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(0, 0, width, height);
+    drawLines(arr, time / timeRatio);
+    requestAnimationFrame(loop);
 }
+
+loop(0);
 
     </script>
 </body>
