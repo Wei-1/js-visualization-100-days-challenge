@@ -15,4 +15,5 @@ Some testing styles for other personal projects
 1. [Radar Chart](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-12.html)
 1. [Taggle Switch Color](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-13.html)
 1. [Sinusoid Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-14.html)
-1. [Tree](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Tree](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-15.html)
+1. [Line Field](https://wei-1.github.io/js-visualization-100-days-challenge/)

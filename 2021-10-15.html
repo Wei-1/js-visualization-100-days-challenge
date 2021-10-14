@@ -1,0 +1,80 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const maxLength = 100;
+const minLength = 5;
+const maxRatio = 0.5;
+const branchRate = 0.8;
+const randAngle = 10;
+const leafLength = 10;
+const startX = width / 2;
+const startY = height / 10 * 9;
+
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+function setTree(l, a){
+    return {
+        "l": getRandomInt(l, l * maxRatio),
+        "a": a,
+        "b": []
+    }
+}
+
+function growTree(tree){
+    if(tree["l"] > minLength){
+        if(Math.random() < branchRate){
+            let treeR = growTree(setTree(tree['l'], tree['a'] - 15));
+            let treeL = growTree(setTree(tree['l'], tree['a'] + 15));
+            tree['b'] = [treeL, treeR];
+        } else {
+            let treeC = growTree(setTree(tree['l'], tree['a'] + Math.random() * randAngle - randAngle / 2));
+            tree['b'] = [treeC];
+        }
+    }
+    return tree;
+}
+
+function drawTree(tree, sx, sy){
+    let dx = tree['l'] * Math.sin(tree['a'] * Math.PI / 180);
+    let dy = tree['l'] * Math.cos(tree['a'] * Math.PI / 180);
+    for(let i = 0; i < tree['b'].length; i ++){
+        drawTree(tree['b'][i], sx - dx, sy - dy);
+    }
+    if(tree['b'].length == 0){
+        ctx.fillStyle = 'rgba(0,200,100,0.3)';
+        ctx.beginPath();
+        ctx.arc(sx - dx, sy - dy, leafLength, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.lineWidth = Math.max(1, tree['l'] / 10);
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx - dx, sy - dy);
+    ctx.stroke();
+}
+
+let tree = growTree(setTree(maxLength, 0));
+
+drawTree(tree, startX, startY);
+
+    </script>
+</body>
+</html>
