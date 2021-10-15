@@ -1,0 +1,96 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousemove="mouseE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const blockSize = 10;
+const initLength = 5;
+const initAngle = 0;
+const RAD = Math.PI / 180;
+
+let mouseX = 0;
+let mouseY = 0;
+function mouseE(e){
+    mouseX = e.x;
+    mouseY = e.y;
+}
+
+let arr = [];
+for(let i = 0; i < width / blockSize; i ++){
+    for(let j = 0; j < height / blockSize; j ++){
+        arr.push([i * blockSize, j * blockSize,
+            initLength, initAngle]);
+    }
+}
+
+function drawLines(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let b = arr[i];
+        let dx = b[2] * Math.sin(b[3] * RAD);
+        let dy = b[2] * Math.cos(b[3] * RAD);
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(b[0], b[1]);
+        ctx.lineTo(b[0] - dx, b[1] - dy);
+        ctx.stroke();
+    }
+}
+
+function updateLines(arr, time){
+    for(let i = 0; i < arr.length; i ++){
+        let d = Math.sqrt(Math.pow(arr[i][0] - mouseX, 2) + Math.pow(arr[i][1] - mouseY, 2));
+        while(arr[i][3] < -180){
+            arr[i][3] += 360;
+        }
+        while(arr[i][3] > 180){
+            arr[i][3] -= 360;
+        }
+        if(d < 200){
+            if(arr[i][2] < initLength * 2){
+                arr[i][2] += (200 - d) * 0.005;
+            }
+            if(arr[i][3] >= 0){
+                arr[i][3] += (200 - d) * 0.1;
+                if(arr[i][3] > 180){
+                    arr[i][3] = 180;
+                }
+            }else{
+                arr[i][3] -= (200 - d) * 0.1;
+                if(arr[i][3] < -180){
+                    arr[i][3] = 180;
+                }
+            }
+        }
+        arr[i][3] *= Math.max(0.9, 1 - (0.0001 * d));
+        arr[i][2] = (arr[i][2] - initLength) * 0.9 + initLength;
+    }
+    return arr;
+}
+
+function loop(time){
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(0, 0, width, height);
+    arr = updateLines(arr, time);
+    drawLines(arr);
+    requestAnimationFrame(loop);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>
