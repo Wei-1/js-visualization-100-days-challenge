@@ -1,0 +1,87 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const n = 30;
+const xShift = 100;
+const xRatio = 5;
+const msgRatio = 0.1;
+const envRatio = 0.3;
+const conRatio = 0.7;
+const timeRatio = 3000;
+const jRatio = 0.3;
+const j1Speed = 10;
+const j2Speed = 2;
+const blurScale = 10;
+const blurYScale = 0.8;
+const startX = -xShift;
+const startY = height / 2;
+const linePoints = (width + xShift) / xRatio;
+const RAD = Math.PI / 180;
+
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+let arr = [];
+for(let i = 0; i < n; i ++){
+    let agl = getRandomInt(360);
+    let anr = Math.random() * msgRatio;
+    let dy = Math.random() * conRatio - conRatio / 2;
+    let br = getRandomInt(blurScale, 1);
+    dy = dy * (1 - blurYScale) + dy * br / blurScale * blurYScale;
+    arr.push([agl, anr, dy, br]);
+}
+
+function drawLines(arr, dt = 0){
+    for(let i = 0; i < n; i ++){
+        let agl = arr[i][0];
+        let anr = arr[i][1];
+        let dy = arr[i][2];
+        let br = arr[i][3];
+        let r = 255 - br * 20;
+        let g = 255;
+        let b = 255 - br * 2;
+        ctx.filter = 'blur('+br+'px)';
+        ctx.strokeStyle = 'rgba('+r+','+g+','+b+',1)';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        for(let j = 0; j < linePoints; j ++){
+            let x = startX + j * xRatio;
+            let j1 = (j + dt * (blurScale - br)) * j1Speed;
+            let j2 = (j + dt * jRatio) * j2Speed;
+            let y = startY + j * dy +
+                j * anr * Math.sin((j1 + agl) * RAD) +
+                j * envRatio * Math.sin(j2 * RAD);
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+}
+
+function loop(time){
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(0, 0, width, height);
+    drawLines(arr, time / timeRatio);
+    requestAnimationFrame(loop);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>
