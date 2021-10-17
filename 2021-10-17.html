@@ -1,0 +1,55 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const scaleSize = 10;
+const whr = width / height;
+
+const noise = document.createElement("canvas");
+noise.width  = width;
+noise.height = height;
+const b = noise.getContext('2d');
+let imageData = b.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+let i = 0;
+while (i < pixels.length) {
+    pixels[i++] = pixels[i++] = pixels[i++] = Math.random() * 256;
+    pixels[i++] = 255;
+}
+b.putImageData(imageData, 0, 0);
+
+function perlinNoise(time) {
+    for (let dw = scaleSize; dw <= width; dw *= 2) {
+        let dh = dw / whr;
+        let x = (Math.sin(time * 0.0000001 * dw) / 2 + 0.5) * (width - dw);
+        let y = (Math.cos(time * 0.0000001 * dh) / 2 + 0.5) * (height - dh);
+        ctx.globalAlpha = scaleSize / dw;
+        ctx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+    }
+}
+
+function loop(time){
+    perlinNoise(time);
+
+    requestAnimationFrame(loop);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>

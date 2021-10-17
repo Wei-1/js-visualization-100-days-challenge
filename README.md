@@ -17,4 +17,5 @@ Some testing styles for other personal projects
 1. [Sinusoid Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-14.html)
 1. [Tree](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-15.html)
 1. [Line Field](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-16.html)
-1. [Moving Perlin Noise](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Moving Perlin Noise](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-17.html)
+1. [Newton's Fractal](https://wei-1.github.io/js-visualization-100-days-challenge/)

@@ -16,39 +16,66 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const scaleSize = 10;
-const whr = width / height;
+// algorithm: C^3 - 1; C = (X + Yi);
+// f(C) = (X^2 - Y^2 + 2*X*Yi) * (X + Yi) - 1;
+// f(C) = X^3 - 3*X*Y^2 + 3*X^2*Yi - Y^3i - 1;
+// slope: 3*C^2; 3*X^2 + 6*X*Yi - 3*Y^2;
+// f'(C) = 3*X^2 - 3*Y^2 + 6*X*Yi;
+// shift = f(C) / f'(C)
+// (a + bi) / (c + di) =
+// (ac + bd) / (c^2 + d^2) + (bc - ad)i / (c^2 + d^2);
+// f(C) = 0: C = (1, 0), (-0.5, 0.866), (-0.5, -0.866)
 
-const noise = document.createElement("canvas");
-noise.width  = width;
-noise.height = height;
-const b = noise.getContext('2d');
-let imageData = b.getImageData(0, 0, width, height);
-let pixels = imageData.data;
-let i = 0;
-while (i < pixels.length) {
-    pixels[i++] = pixels[i++] = pixels[i++] = Math.random() * 256;
-    pixels[i++] = 255;
+const step = 50;
+const solve = [[1, 0], [-0.5, 0.866], [-0.5, -0.866]];
+
+function next(x, y){
+    let fcr = x*x*x - 3*x*y*y - 1;
+    let fci = 3*x*x*y - y*y*y;
+    let fdr = 3*x*x - 3*y*y;
+    let fdi = 6*x*y;
+    let tmp = fdr*fdr + fdi*fdi;
+    if(tmp == 0) tmp = 0.0000001;
+    let sr = (fcr*fdr + fci*fdi) / tmp;
+    let si = (fci*fdr - fcr*fdi) / tmp;
+    return [x - sr, y - si];
 }
-b.putImageData(imageData, 0, 0);
 
-function perlinNoise(time) {
-    for (let dw = scaleSize; dw <= width; dw *= 2) {
-        let dh = dw / whr;
-        let x = (Math.sin(time * 0.0000001 * dw) / 2 + 0.5) * (width - dw);
-        let y = (Math.cos(time * 0.0000001 * dh) / 2 + 0.5) * (height - dh);
-        ctx.globalAlpha = scaleSize / dw;
-        ctx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+function closest(x, y){
+    let arr = solve.map((p) => dist(p, [x, y]));
+    return arr.indexOf(Math.min(...arr));
+}
+
+function getRGB(i, j){
+    let x = i - width / 2;
+    let y = j - height / 2;
+    for(let s = 0; s < step; s ++){
+        let tmp = next(x, y);
+        x = tmp[0];
+        y = tmp[1];
+    }
+    let rgb = [0, 0, 0];
+    rgb[closest(x, y)] = 255;
+    return rgb;
+}
+
+let imageData = ctx.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+for(let i = 0; i < width; i ++){
+    for(let j = 0; j < height; j ++){
+        let rgb = getRGB(i, j);
+        let k = (j * width + i) * 4;
+        pixels[k+0] = rgb[0];
+        pixels[k+1] = rgb[1];
+        pixels[k+2] = rgb[2];
+        pixels[k+3] = 255;
     }
 }
-
-function loop(time){
-    perlinNoise(time);
-
-    requestAnimationFrame(loop);
-}
-
-loop(0);
+ctx.putImageData(imageData, 0, 0);
 
     </script>
 </body>
