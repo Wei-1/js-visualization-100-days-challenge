@@ -16,66 +16,36 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-// algorithm: C^3 - 1; C = (X + Yi);
-// f(C) = (X^2 - Y^2 + 2*X*Yi) * (X + Yi) - 1;
-// f(C) = X^3 - 3*X*Y^2 + 3*X^2*Yi - Y^3i - 1;
-// slope: 3*C^2; 3*X^2 + 6*X*Yi - 3*Y^2;
-// f'(C) = 3*X^2 - 3*Y^2 + 6*X*Yi;
-// shift = f(C) / f'(C)
-// (a + bi) / (c + di) =
-// (ac + bd) / (c^2 + d^2) + (bc - ad)i / (c^2 + d^2);
-// f(C) = 0: C = (1, 0), (-0.5, 0.866), (-0.5, -0.866)
+const recWidthMin = 10;
+const recWidthMax = 150;
+const recGap = 10;
+const recHeight = 20;
 
-const step = 50;
-const solve = [[1, 0], [-0.5, 0.866], [-0.5, -0.866]];
-
-function next(x, y){
-    let fcr = x*x*x - 3*x*y*y - 1;
-    let fci = 3*x*x*y - y*y*y;
-    let fdr = 3*x*x - 3*y*y;
-    let fdi = 6*x*y;
-    let tmp = fdr*fdr + fdi*fdi;
-    if(tmp == 0) tmp = 0.0000001;
-    let sr = (fcr*fdr + fci*fdi) / tmp;
-    let si = (fci*fdr - fcr*fdi) / tmp;
-    return [x - sr, y - si];
+function getRandomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
 }
 
-function dist(p1, p2) {
-    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
-}
-
-function closest(x, y){
-    let arr = solve.map((p) => dist(p, [x, y]));
-    return arr.indexOf(Math.min(...arr));
-}
-
-function getRGB(i, j){
-    let x = i - width / 2;
-    let y = j - height / 2;
-    for(let s = 0; s < step; s ++){
-        let tmp = next(x, y);
-        x = tmp[0];
-        y = tmp[1];
+function getRandomColor(){
+    let seed = getRandomInt(768);
+    let r = g = b = 255;
+    if(seed < 256){
+        r = seed, g = 255 - r;
+    }else if(seed < 512){
+        g = seed % 256, b = 255 - g;
+    }else{
+        b = seed % 256, r = 255 - b;
     }
-    let rgb = [0, 0, 0];
-    rgb[closest(x, y)] = 255;
-    return rgb;
+    return 'rgb('+r+','+g+','+b+')';
 }
 
-let imageData = ctx.getImageData(0, 0, width, height);
-let pixels = imageData.data;
-for(let i = 0; i < width; i ++){
-    for(let j = 0; j < height; j ++){
-        let rgb = getRGB(i, j);
-        let k = (j * width + i) * 4;
-        pixels[k+0] = rgb[0];
-        pixels[k+1] = rgb[1];
-        pixels[k+2] = rgb[2];
-        pixels[k+3] = 255;
+for(let i = recGap / 2; i < height; i += recHeight + recGap){
+    for(let j = 0; j < width; j += recGap){
+        let w = getRandomInt(recWidthMax, recWidthMin);
+        ctx.fillStyle = getRandomColor();
+        ctx.fillRect(j, i, w, recHeight);
+        j += w;
     }
 }
-ctx.putImageData(imageData, 0, 0);
 
     </script>
 </body>
