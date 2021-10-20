@@ -1,0 +1,114 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickG(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const gridSize = 5;
+const gridH = Math.floor(height / gridSize) + 1;
+const gridW = Math.floor(width / gridSize) + 1;
+const queSize = 100;
+const dirs = [[0, 0], [0, 1], [0, -1], [1, 0], [-1, 0]];
+
+let grid = [];
+for(let i  = 0; i < gridH; i ++){
+    grid[i] = new Array(gridW).fill(0);
+}
+
+let imageData = ctx.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+
+function valid(i, j){
+    return i >= 0 && i < gridH && j >= 0 && j < gridW;
+}
+
+var clickTime = 0;
+function clickG(e){
+    let ni = Math.floor(e.y / gridSize);
+    let nj = Math.floor(e.x / gridSize);
+    grid[ni][nj] = 255;
+    clickTime = 60;
+}
+
+function clearGrid(){
+    for(let i = 0; i < gridH; i ++){
+        for(let j = 0; j < gridW; j ++){
+            grid[i][j] = 0;
+        }
+    }
+}
+
+let queue = new Array(queSize).fill(0);
+function updateGrid(){
+    let arr = [];
+    for(let i = 0; i < gridH; i ++){
+        for(let j = 0; j < gridW; j ++){
+            let c = 0;
+            dirs.forEach(d => {
+                if(valid(i+d[0], j+d[1])){
+                    c += grid[i+d[0]][j+d[1]] > 0;
+                }
+            });
+            if(c >= 4){
+                arr.push([i, j, 0]);
+            }else if(grid[i][j] == 0 && c == 1 && Math.random() < 0.1){
+                arr.push([i, j, 255]);
+            }
+        }
+    }
+    for(let i = 0; i < arr.length; i ++){
+        grid[arr[i][0]][arr[i][1]] = arr[i][2];
+    }
+    queue.shift();
+    queue.push(arr.length);
+    if(clickTime == 0 && queue.every(q => q == queue[0])){
+        clearGrid();
+    }
+}
+
+function getRGB(i, j){
+    let ni = Math.floor(i / gridSize);
+    let nj = Math.floor(j / gridSize);
+    let t = grid[ni][nj];
+    return [t, t, t];
+}
+
+function updateColor(){
+    for(let i = 0; i < height; i ++){
+        for(let j = 0; j < width; j ++){
+            let rgb = getRGB(i, j);
+            let k = (i * width + j) * 4;
+            pixels[k+0] = rgb[0];
+            pixels[k+1] = rgb[1];
+            pixels[k+2] = rgb[2];
+            pixels[k+3] = 255;
+        }
+    }
+}
+
+function loop(time){
+    clickTime -= Math.min(clickTime, 1);
+    updateGrid();
+    updateColor();
+    ctx.clearRect(0, 0, width, height);
+    ctx.putImageData(imageData, 0, 0);
+    requestAnimationFrame(loop);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>
