@@ -21,9 +21,11 @@ const whr = width / height;
 const dw = scaleSize;
 const dh = dw / whr;
 const gridSize = 10;
+const fadeRatio = 10;
 const pWidth = Math.floor(width / gridSize);
 const pHeight = Math.floor(height / gridSize);
 const slope = 2;
+const shiftFrame = 6;
 
 const perlin = document.createElement("canvas");
 perlin.width  = pWidth;
@@ -46,44 +48,119 @@ function whiteNoise(){
     wctx.putImageData(imageData, 0, 0);
 }
 
-function scaleNoise(){
-    pctx.globalAlpha = scaleSize / dw;
+function shiftNoise(){
+    let imageData = wctx.getImageData(0, 0, dw, dh);
+    let pixels = imageData.data;
+    for(let j = 0; j < dh; j ++){
+        for(let i = 0; i < dw - 1; i ++){
+            let k = (j * dw + i) * 4;
+            pixels[k+0] = pixels[k+4];
+            pixels[k+1] = pixels[k+4];
+            pixels[k+2] = pixels[k+4];
+        }
+        let k = ((j + 1) * dw - 1) * 4;
+        pixels[k+0] = pixels[k+1] = pixels[k+2] = Math.random() * 256;
+    }
+    wctx.putImageData(imageData, 0, 0);
+}
+
+// integral(0, PI):sin(x) = -(cos(PI) - cos(0)) = 2
+function scaleNoise(shift){
+    let a = Math.sin(shift / shiftFrame * Math.PI) / 2;
+    pctx.globalAlpha = a;
     pctx.filter = 'blur(4px)';
     pctx.drawImage(white, 0, 0, dw, dh, 0, 0, pWidth, pHeight);
+}
+
+function xyaConvert(i, j, h){
+    let x = i * gridSize;
+    let dx = j * (i - pWidth / 2);
+    let y = j * gridSize / slope +
+        height / slope * (slope - 1);
+    let dy = h;
+    let a = j / fadeRatio;
+    return [x, dx, y, dy, a];
 }
 
 function image2Space(){
     let arr = [];
     let imageData = pctx.getImageData(0, 0, pWidth, pHeight);
     let pixels = imageData.data;
-    for(let i = 0; i < pWidth; i ++){
-        for(let j = 0; j < pHeight; j ++){
+    for(let j = 0; j < pHeight; j ++){
+        let tmp = [];
+        for(let i = 0; i < pWidth; i ++){
             let k = (j * pWidth + i) * 4;
             let h = pixels[k+0];
-            arr.push([i, j, h]);
+            let xya = xyaConvert(i, j, h);
+            let x = xya[0], dx = xya[1];
+            let y = xya[2], dy = xya[3];
+            let a = xya[4];
+            tmp.push([x, dx, y, dy, a]);
         }
+        arr.push(tmp);
     }
     return arr;
 }
 
 function drawSpace(arr){
-    for(let i = 0; i < arr.length; i ++){
-        let x = arr[i][0] * gridSize;
-        let dx = arr[i][1] * (arr[i][0] - pWidth / 2);
-        let y = arr[i][1] * gridSize / slope +
-            height / slope * (slope - 1);
-        let dy = arr[i][2];
-        ctx.fillStyle = 'rgba('+x/3+','+dy+',255,1)';
-        ctx.beginPath();
-        ctx.arc(x + dx, y + dy, 1, 0, 2 * Math.PI);
-        ctx.fill();
+    for(let j = 0; j < pHeight; j ++){
+        let tmp = arr[j];
+        let tmp2 = arr[j+1];
+        for(let i = 0; i < pWidth; i ++){
+            let xya = tmp[i];
+            let x = xya[0], dx = xya[1];
+            let y = xya[2], dy = xya[3];
+            let a = xya[4];
+            ctx.fillStyle = 'rgba('+x/3+','+dy+',255,'+a+')';
+            ctx.beginPath();
+            ctx.arc(x + dx, y + dy, 1, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        for(let i = 0; i < pWidth - 1; i ++){
+            let xya0 = tmp[i];
+            let x0 = xya0[0], dx0 = xya0[1];
+            let y0 = xya0[2], dy0 = xya0[3];
+            let a = xya0[4];
+            let xya1 = tmp[i+1];
+            let x1 = xya1[0], dx1 = xya1[1];
+            let y1 = xya1[2], dy1 = xya1[3];
+            ctx.strokeStyle = 'rgba('+x0/3+','+dy0+',255,'+a+')';
+            ctx.beginPath();
+            ctx.moveTo(x1 + dx1, y1 + dy1);
+            ctx.lineTo(x0 + dx0, y0 + dy0);
+            if(j < pHeight - 1){
+                let xya2 = tmp2[i];
+                let x2 = xya2[0], dx2 = xya2[1];
+                let y2 = xya2[2], dy2 = xya2[3];
+                ctx.lineTo(x2 + dx2, y2 + dy2);
+            }
+            ctx.stroke();
+        }
     }
 }
 
 whiteNoise();
-scaleNoise()
-let arr = image2Space();
-drawSpace(arr);
+
+var shift = 0;
+function loop(time){
+    if(shift < shiftFrame){
+        shift ++;
+    }else{
+        shift = 0;
+        shiftNoise();
+    }
+    scaleNoise(shift);
+    let arr = image2Space();
+
+    ctx.clearRect(0, 0, width, height);
+    drawSpace(arr);
+
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, 50);
+}
+
+loop(0);
 
     </script>
 </body>

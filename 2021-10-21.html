@@ -1,0 +1,90 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const scaleSize = 12;
+const whr = width / height;
+const dw = scaleSize;
+const dh = dw / whr;
+const gridSize = 10;
+const pWidth = Math.floor(width / gridSize);
+const pHeight = Math.floor(height / gridSize);
+const slope = 2;
+
+const perlin = document.createElement("canvas");
+perlin.width  = pWidth;
+perlin.height = pHeight;
+const pctx = perlin.getContext('2d');
+
+const white = document.createElement("canvas");
+white.width  = pWidth;
+white.height = pHeight;
+const wctx = white.getContext('2d');
+
+function whiteNoise(){
+    let imageData = wctx.getImageData(0, 0, dw, dh);
+    let pixels = imageData.data;
+    let i = 0;
+    while (i < pixels.length) {
+        pixels[i++] = pixels[i++] = pixels[i++] = Math.random() * 256;
+        pixels[i++] = 255;
+    }
+    wctx.putImageData(imageData, 0, 0);
+}
+
+function scaleNoise(){
+    pctx.globalAlpha = 1;
+    pctx.filter = 'blur(4px)';
+    pctx.drawImage(white, 0, 0, dw, dh, 0, 0, pWidth, pHeight);
+}
+
+function image2Space(){
+    let arr = [];
+    let imageData = pctx.getImageData(0, 0, pWidth, pHeight);
+    let pixels = imageData.data;
+    for(let i = 0; i < pWidth; i ++){
+        for(let j = 0; j < pHeight; j ++){
+            let k = (j * pWidth + i) * 4;
+            let h = pixels[k+0];
+            arr.push([i, j, h]);
+        }
+    }
+    return arr;
+}
+
+function drawSpace(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let x = arr[i][0] * gridSize;
+        let dx = arr[i][1] * (arr[i][0] - pWidth / 2);
+        let y = arr[i][1] * gridSize / slope +
+            height / slope * (slope - 1);
+        let dy = arr[i][2];
+        ctx.fillStyle = 'rgba('+x/3+','+dy+',255,1)';
+        ctx.beginPath();
+        ctx.arc(x + dx, y + dy, 1, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+}
+
+whiteNoise();
+scaleNoise();
+let arr = image2Space();
+drawSpace(arr);
+
+    </script>
+</body>
+</html>
