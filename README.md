@@ -23,4 +23,5 @@ Some testing styles for other personal projects
 1. [Growing Moss](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-20.html)
 1. [3D Particles Wave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-21.html)
 1. [3D Moving Links](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-22.html)
-1. [Organization Chart](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Organization Chart](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-23.html)
+1. [Organization Chart Expandable](https://wei-1.github.io/js-visualization-100-days-challenge/)
