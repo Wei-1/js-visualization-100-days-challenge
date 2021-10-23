@@ -106,14 +106,13 @@ function randomUser(){
         "organization": "",
         "message": "",
         "links": [],
-        "direct": [],
-        "status": ""
+        "direct": []
     }
 }
 
 function randomOrganization(l, u = randomUser()){
-    if(l < 5){
-        let count = randomInt(4, Math.max(0, 3 - l));
+    if(Math.random() * l < 0.1){
+        let count = randomInt(12, 1);
         for(let i = 0; i < count; i ++){
             let tmp = randomOrganization(l + 1);
             u['direct'].push(tmp)
@@ -139,85 +138,24 @@ function loadUser(u){
     for(let i = 0; i < load.length; i ++){
         let tmp = document.createElement(load[i][1]);
         tmp.innerHTML = u[load[i][0]];
-        tmp.id = "user" + load[i][0];
         userright.appendChild(tmp);
     }
 }
 
-function findDepth(tree, login){
-    if(tree['login'] == login){
-        for(let i = 0; i < tree['direct'].length; i ++){
-            findDepth(tree['direct'][i], login);
-        }
-        tree['depth'] = 0;
-        return 0;
-    }else{
-        let l = -1;
-        for(let i = 0; i < tree['direct'].length; i ++){
-            l = Math.max(l, findDepth(tree['direct'][i], login));
-        }
-        if(l > -1){
-            if(l == 0){
-                for(let i = 0; i < tree['direct'].length; i ++){
-                    tree['direct'][i]['depth'] = 0;
-                }
-            }
-            tree['depth'] = l + 1;
-            return l + 1;
-        }else{
-            tree['depth'] = -1;
-            return -1;
-        }
-    }
-}
-
-function findUser(tree, login){
-    let depth = findDepth(tree, login);
-    return tree;
+function findUser(u, login){
+    return u;
 }
 
 function printTree(t, l){
-    let login = document.getElementById('userlogin').innerHTML;
-    let tmp = document.createElement("div");
+    let tmp = document.createElement("pre");
+    tmp.innerHTML = "   ".repeat(l) + "|-> " + t['name'];
     tmp.style.cursor = 'pointer';
-    tmp.style.height = '32px';
-    tmp.style.margin = '0';
-    tmp.style.whiteSpace = 'pre';
-    if(t['login'] == login){
-        tmp.style.backgroundColor = '#e0e0ff';
-    }
     tmp.onclick = function(){
         loadUser(t);
-        let tree = findUser(root, t['login']);
-        loadTree(tree);
     };
-    let tmp0 = document.createElement("text");
-    tmp0.innerHTML = "   ".repeat(l);
-    if(t['depth'] == 1){
-        tmp0.innerHTML += "⊢⊖ ";
-    }else if(t['login'] == login){
-        tmp0.innerHTML += "⊢⊚ ";
-    }else if(t['direct'].length > 0){
-        tmp0.innerHTML += "⊢⊕ ";
-    }else{
-        tmp0.innerHTML += "⊢⊙ ";
-    }
-    tmp0.style.verticalAlign = 'middle';
-    let tmp1 = document.createElement("img");
-    tmp1.src = t.avatar;
-    tmp1.style.height = '30px';
-    tmp1.style.verticalAlign = 'middle';
-    let tmp2 = document.createElement("text");
-    tmp2.innerHTML = " " + t['name'];
-    tmp2.style.verticalAlign = 'middle';
-    tmp.appendChild(tmp0);
-    tmp.appendChild(tmp1);
-    tmp.appendChild(tmp2);
     org.appendChild(tmp);
     for(let i = 0; i < t['direct'].length; i ++){
-        if(t['direct'][i]['depth'] >= 0 || t['login'] == login){
-            printTree(t['direct'][i], l + 1);
-        }
+        printTree(t['direct'][i], l + 1);
     }
 }
 
@@ -227,7 +165,8 @@ function loadTree(t){
 }
 
 loadUser(root);
-loadTree(root);
+let tree = findUser(root);
+loadTree(tree);
 
     </script>
 </body>
