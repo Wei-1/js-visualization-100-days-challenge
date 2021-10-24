@@ -1,24 +1,13 @@
 <html>
-<head>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-</head>
-<body class="w3-content" style="background-color:#f7f7f7;max-width:1300px">
-    <div class="w3-row w3-black w3-center" id="header" style="position:sticky;top:0;z-index:1;width:100%;height:30px"> HEADER </div>
-    <div class="w3-row w3-left-align" id="content">
-        <div class="w3-col" id="contentleft" style="width:300px;padding:3%">
+<body style="background-color:#f7f7f7;">
+    <div id="user" style="width:94%;display:table;padding:3%">
+        <div id="userleft" style="width:20%;float:left;padding:2.5%">
         </div>
-        <div class="w3-col" id="contentright" style="width:700px;padding:3%">
-            <div class="w3-bar">
-                <button class="w3-bar-item w3-button tablink w3-orange" onclick="openTab(event,'Challenges')">Challenges</button>
-                <button class="w3-bar-item w3-button tablink" onclick="openTab(event,'Organization')">Organization</button>
-            </div>
-            <hr/>
-            <div id="data" class="w3-container">
-            </div>
+        <div id="userright" style="width:70%;float:left;padding:2.5%">
         </div>
     </div>
     <hr/>
-    <div class="w3-row w3-center" id="footer" style="width:100%;height:80px"> FOOTER </div>
+    <div id="organization" style="width:94%;display:table;padding:3%"></div>
     <script>
 
 let width = window.innerWidth
@@ -28,6 +17,9 @@ let width = window.innerWidth
 let height = window.innerHeight
 || document.documentElement.clientHeight
 || document.body.clientHeight;
+
+const usr = document.getElementById('user');
+const org = document.getElementById('organization');
 
 function randomInt(max, min = 0){
     return Math.floor(Math.random() * (max-min)) + min;
@@ -39,20 +31,15 @@ function randomChar(up = false){
     return s[randomInt(s.length)];
 }
 
-function randomChars(l, up = false){
-    return (new Array(l).fill(up)).map(randomChar).join("");
-}
-
 function randomLogin(){
     let l = randomInt(10, 4);
-    return randomChars(l);
+    return (new Array(l).fill(0)).map(randomChar).join("");
 }
 
 function randomName(){
-    let l1 = randomInt(8, 4);
-    let l2 = randomInt(8, 4);
-    let firstName = randomChar(1) + randomChars(l1 - 1);
-    let lastName = randomChar(1) + randomChars(l2 - 1);
+    let l = randomInt(8, 4);
+    let firstName = randomChar(1) + (new Array(l - 1).fill(0)).map(randomChar).join("");
+    let lastName = randomChar(1) + (new Array(l - 1).fill(0)).map(randomChar).join("");
     return firstName + " " + lastName;
 }
 
@@ -75,7 +62,7 @@ function randomImageLink(){
 }
 
 function randomLocation(){
-    return randomChars(3, true) + randomInt(20, 1);
+    return (new Array(3).fill(1)).map(randomChar).join("") + randomInt(20, 1);
 }
 
 function randomPhone(){
@@ -135,50 +122,25 @@ function randomOrganization(l, u = randomUser()){
     return u;
 }
 
-var chalCount = 0;
-function randomChallenge(){
-    return {
-        "id": ++ chalCount,
-        "name": randomChars(randomInt(10, 3)),
-        "description": randomChars(randomInt(30, 10)),
-        "owner": root['name'],
-        "icon": randomImageLink(),
-        "cover": randomImageLink(),
-        "likes": randomInt(1000),
-        "participants": randomInt(10)
-    }
-}
-
-function randomChallenges(){
-    let l = 20;
-    return (new Array(l).fill(0)).map(randomChallenge);
-}
-
-// ---------------- RANDOM ITEMS ---------------- //
-
 let root = randomOrganization(0);
+
 console.log(root);
 
-let challenges = randomChallenges();
-console.log(challenges);
-
-// ---------------- VISUALIZATION ---------------- //
-
 function loadUser(u){
-    let userleft = document.getElementById('contentleft');
+    let userleft = document.getElementById('userleft');
     userleft.innerHTML = "";
+    let userright = document.getElementById('userright');
+    userright.innerHTML = "";
     let avatar = document.createElement("img");
     avatar.src = u['avatar'];
     avatar.style.maxWidth = '100%';
     userleft.appendChild(avatar);
-    let hr = document.createElement("hr");
-    userleft.appendChild(hr);
     let load = [["name", "h2"], ["position", "h3"], ["login", "p"], ["location", "p"], ["phone", "p"], ["email", "p"]];
     for(let i = 0; i < load.length; i ++){
         let tmp = document.createElement(load[i][1]);
         tmp.innerHTML = u[load[i][0]];
         tmp.id = "user" + load[i][0];
-        userleft.appendChild(tmp);
+        userright.appendChild(tmp);
     }
 }
 
@@ -215,7 +177,6 @@ function findUser(tree, login){
 }
 
 function printTree(t, l){
-    let data = document.getElementById('data');
     let login = document.getElementById('userlogin').innerHTML;
     let tmp = document.createElement("div");
     tmp.style.cursor = 'pointer';
@@ -228,7 +189,7 @@ function printTree(t, l){
     tmp.onclick = function(){
         loadUser(t);
         let tree = findUser(root, t['login']);
-        loadOrg(tree);
+        loadTree(tree);
     };
     let tmp0 = document.createElement("text");
     tmp0.innerHTML = "   ".repeat(l);
@@ -252,7 +213,7 @@ function printTree(t, l){
     tmp.appendChild(tmp0);
     tmp.appendChild(tmp1);
     tmp.appendChild(tmp2);
-    data.appendChild(tmp);
+    org.appendChild(tmp);
     for(let i = 0; i < t['direct'].length; i ++){
         if(t['direct'][i]['depth'] >= 0 || t['login'] == login){
             printTree(t['direct'][i], l + 1);
@@ -260,69 +221,13 @@ function printTree(t, l){
     }
 }
 
-function printChal(chals){
-    let data = document.getElementById('data');
-    for(let i = 0; i < chals.length; i ++){
-        let chal = chals[i];
-        let tmp = document.createElement("div");
-        tmp.style.cursor = 'pointer';
-        tmp.className = "w3-bar w3-border";
-        tmp.style.marginTop = '10px';
-        tmp.style.marginBottom = '10px';
-        let tmp0 = document.createElement("div");
-        tmp0.className = "w3-col w3-display-container";
-        tmp0.style.width = '100px';
-        tmp0.style.height = '100px';
-        let tmp1 = document.createElement("img");
-        tmp1.className = "w3-display-middle";
-        tmp1.src = chal['icon'];
-        tmp1.style.width = '50px';
-        let tmp2 = document.createElement("div");
-        tmp2.className = "w3-col";
-        tmp2.style.width = '500px';
-        tmp2.style.height = '100px';
-        let tmp3 = document.createElement("h2");
-        tmp3.innerHTML = chal['name'];
-        let tmp4 = document.createElement("text");
-        tmp4.innerHTML = chal['description'];
-        tmp0.appendChild(tmp1);
-        tmp2.appendChild(tmp3);
-        tmp2.appendChild(tmp4);
-        tmp.appendChild(tmp0);
-        tmp.appendChild(tmp2);
-        data.appendChild(tmp);
-    }
-}
-
-// ---------------- INTERACTION ---------------- //
-
-function loadOrg(t){
-    let data = document.getElementById('data');
-    data.innerHTML = "";
+function loadTree(t){
+    org.innerHTML = "";
     printTree(t, 0);
 }
 
-function loadChal(chals){
-    let data = document.getElementById('data');
-    data.innerHTML = "";
-    printChal(chals);
-}
-
-function openTab(event, tab){
-    let tablinks = document.getElementsByClassName("tablink");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" w3-orange", "");
-    }
-    event.currentTarget.className += " w3-orange";
-    if(tab == "Organization"){
-        loadOrg(root);
-    }else if(tab == "Challenges"){
-        loadChal(challenges);
-    }
-}
-
 loadUser(root);
-loadChal(challenges);
+loadTree(root);
 
     </script>
 </body>
