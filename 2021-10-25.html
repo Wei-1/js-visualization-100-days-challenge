@@ -9,8 +9,7 @@
         </div>
         <div class="w3-rest" id="contentright" style="min-width:700px;padding:3%">
             <div class="w3-bar">
-                <button class="w3-bar-item w3-button tablink w3-orange" onclick="openTab(event,'Overview')">Overview</button>
-                <button class="w3-bar-item w3-button tablink" onclick="openTab(event,'Challenges')">Challenges</button>
+                <button class="w3-bar-item w3-button tablink w3-orange" onclick="openTab(event,'Challenges')">Challenges</button>
                 <button class="w3-bar-item w3-button tablink" onclick="openTab(event,'Organization')">Organization</button>
             </div>
             <hr/>
@@ -83,7 +82,7 @@ function randomPhone(){
     return randomInt(9999999999, 1000000000);
 }
 
-function randomDate(){
+function randomHireDate(){
     let t = (new Date).getTime();
     return randomInt(t, t - 31553280000);
 }
@@ -102,7 +101,7 @@ var userCount = 0;
 function randomUser(){
     let t = (new Date).getTime();
     let login = randomLogin();
-    let hiredate = randomDate();
+    let hiredate = randomHireDate();
     let tenure = Math.floor(t - hiredate) / 86400000;
     return {
         "id": ++ userCount,
@@ -143,7 +142,6 @@ function randomChallenge(){
         "name": randomChars(randomInt(10, 3)),
         "description": randomChars(randomInt(30, 10)),
         "owner": root['name'],
-        "startdate": randomDate(),
         "icon": randomImageLink(),
         "cover": randomImageLink(),
         "likes": randomInt(1000),
@@ -156,40 +154,6 @@ function randomChallenges(){
     return (new Array(l).fill(0)).map(randomChallenge);
 }
 
-var actCount = 0;
-function chal2Act(chal){
-    return {
-        "id": ++ actCount,
-        "owner": chal['owner'],
-        "action": "create",
-        "atype": "challenge",
-        "aid": chal['id'],
-        "aname": chal['name'],
-        "adate": chal['startdate']
-    }
-}
-
-function randomActivity(){
-    let acts = ["join", "submit"];
-    let atypes = ["challenge", "work"];
-    return {
-        "id": ++ actCount,
-        "owner": root['name'],
-        "action": acts[randomInt(acts.length)],
-        "atype": atypes[randomInt(atypes.length)],
-        "aid": randomInt(1000),
-        "aname": randomChars(randomInt(10, 3)),
-        "adate": randomDate()
-    }
-}
-
-function randomActivities(){
-    let l = 100;
-    let a1 = challenges.map(chal2Act);
-    let a2 = (new Array(l).fill(0)).map(randomActivity);
-    return a1.concat(a2);
-}
-
 // ---------------- RANDOM ITEMS ---------------- //
 
 let root = randomOrganization(0);
@@ -197,9 +161,6 @@ console.log(root);
 
 let challenges = randomChallenges();
 console.log(challenges);
-
-let activities = randomActivities();
-console.log(activities);
 
 // ---------------- VISUALIZATION ---------------- //
 
@@ -333,69 +294,7 @@ function printChal(chals){
     }
 }
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function printView(acts){
-    let days = new Array(371).fill(0);
-    let t = (new Date).getTime();
-    let weekday = (new Date).getDay();
-    for(let i = 0; i < acts.length; i ++){
-        let d = Math.floor((t - acts[i]['adate']) / 86400000);
-        if(d < 371){
-            days[d] ++;
-        }
-    }
-    let data = document.getElementById('data');
-    let tmp = document.createElement("div");
-    tmp.className = "w3-row w3-border";
-    tmp.style.marginTop = '10px';
-    tmp.style.marginBottom = '10px';
-    tmp.style.padding = "10px";
-    tmp.style.height = "200px";
-    let tmp0 = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    tmp0.setAttribute('width', '100%');
-    tmp0.setAttribute('height', tmp.style.height);
-    let tmp1 = document.createElement("text");
-    tmp1.innerHTML = "Browser does not support inline SVG";
-    tmp0.appendChild(tmp1);
-    tmp.appendChild(tmp0);
-    data.appendChild(tmp);
-    let w = tmp0.getBoundingClientRect().width;
-    for(let i = 0; i < days.length; i ++){
-        let x = w - (53 - Math.floor((weekday + 371 - i) / 7)) * 20 - 20;
-        let y = ((weekday + 371 - i) % 7) * 20 + 35;
-        let tmp2 = document.createElementNS('http://www.w3.org/2000/svg','rect');
-        tmp2.setAttribute('x', x);
-        tmp2.setAttribute('y', y);
-        tmp2.setAttribute('width', 15);
-        tmp2.setAttribute('height', 15);
-        tmp2.style.cursor = "pointer";
-        if(days[i] > 0){
-            tmp2.style.fill = "orange";
-            tmp2.style.fillOpacity = days[i] / 5;
-        }else{
-            tmp2.style.fill = "grey";
-            tmp2.style.fillOpacity = 0.1;
-        }
-        tmp0.appendChild(tmp2);
-        let d = new Date(t - i * 86400000);
-        if(d.getDate() == 1){
-            let tmp3 = document.createElementNS('http://www.w3.org/2000/svg','text');
-            tmp3.setAttribute('x', x);
-            tmp3.setAttribute('y', 20);
-            tmp3.style.fontSize = "12px";
-            tmp3.innerHTML = months[d.getMonth()];
-            tmp0.appendChild(tmp3);
-        }
-    }
-}
-
 // ---------------- INTERACTION ---------------- //
-
-function loadView(acts){
-    let data = document.getElementById('data');
-    data.innerHTML = "";
-    printView(acts);
-}
 
 function loadOrg(t){
     let data = document.getElementById('data');
@@ -409,31 +308,21 @@ function loadChal(chals){
     printChal(chals);
 }
 
-function showTab(){
-    if(currentTab == "Overview"){
-        loadView(activities);
-    }else if(currentTab == "Organization"){
-        loadOrg(root);
-    }else if(currentTab == "Challenges"){
-        loadChal(challenges);
-    }
-}
-
-let currentTab = "Overview";
 function openTab(event, tab){
-    currentTab = tab;
     let tablinks = document.getElementsByClassName("tablink");
     for (i = 0; i < tablinks.length; i++) {
         tablinks[i].className = tablinks[i].className.replace(" w3-orange", "");
     }
     event.currentTarget.className += " w3-orange";
-    showTab();
+    if(tab == "Organization"){
+        loadOrg(root);
+    }else if(tab == "Challenges"){
+        loadChal(challenges);
+    }
 }
 
-window.onresize = showTab;
-
 loadUser(root);
-showTab();
+loadChal(challenges);
 
     </script>
 </body>
