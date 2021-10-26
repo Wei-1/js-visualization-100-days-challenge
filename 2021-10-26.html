@@ -9,7 +9,7 @@
         </div>
         <div class="w3-rest" id="contentright" style="min-width:700px;padding:3%">
             <div class="w3-bar">
-                <button class="w3-bar-item w3-button tablink w3-amber" onclick="openTab(event,'Overview')">Overview</button>
+                <button class="w3-bar-item w3-button tablink w3-orange" onclick="openTab(event,'Overview')">Overview</button>
                 <button class="w3-bar-item w3-button tablink" onclick="openTab(event,'Challenges')">Challenges</button>
                 <button class="w3-bar-item w3-button tablink" onclick="openTab(event,'Organization')">Organization</button>
             </div>
@@ -161,36 +161,25 @@ function chal2Act(chal){
     return {
         "id": ++ actCount,
         "owner": chal['owner'],
-        "adate": chal['startdate'],
         "action": "create",
         "atype": "challenge",
-        "cid": chal['id'],
-        "cname": chal['name'],
-        "wname": ""
+        "aid": chal['id'],
+        "aname": chal['name'],
+        "adate": chal['startdate']
     }
 }
 
 function randomActivity(){
-    let i = randomInt(2);
-    let act = ["join", "submit"][i];
-    let atype = ["challenge", "work"][i];
-    let wname = randomChars(randomInt(10, 3));
-    let cname = randomChars(randomInt(10, 3));
-    let cid = randomInt(1000);
-    if(atype == "work"){
-        let chal = challenges[randomInt(challenges.length)];
-        cname = chal['name'];
-        cid = chal['id'];
-    }
+    let acts = ["join", "submit"];
+    let atypes = ["challenge", "work"];
     return {
         "id": ++ actCount,
         "owner": root['name'],
-        "adate": randomDate(),
-        "action": act,
-        "atype": atype,
-        "cid": cid,
-        "cname": cname,
-        "wname": wname
+        "action": acts[randomInt(acts.length)],
+        "atype": atypes[randomInt(atypes.length)],
+        "aid": randomInt(1000),
+        "aname": randomChars(randomInt(10, 3)),
+        "adate": randomDate()
     }
 }
 
@@ -345,9 +334,16 @@ function printChal(chals){
 }
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function printCalendar(days){
+function printView(acts){
+    let days = new Array(371).fill(0);
     let t = (new Date).getTime();
     let weekday = (new Date).getDay();
+    for(let i = 0; i < acts.length; i ++){
+        let d = Math.floor((t - acts[i]['adate']) / 86400000);
+        if(d < 371){
+            days[d] ++;
+        }
+    }
     let data = document.getElementById('data');
     let tmp = document.createElement("div");
     tmp.className = "w3-row w3-border";
@@ -367,139 +363,30 @@ function printCalendar(days){
     for(let i = 0; i < days.length; i ++){
         let x = w - (53 - Math.floor((weekday + 371 - i) / 7)) * 20 - 20;
         let y = ((weekday + 371 - i) % 7) * 20 + 35;
-        if(x > 30){
-            let tmp2 = document.createElementNS('http://www.w3.org/2000/svg','rect');
-            tmp2.setAttribute('x', x);
-            tmp2.setAttribute('y', y);
-            tmp2.setAttribute('width', 15);
-            tmp2.setAttribute('height', 15);
-            if(days[i].length > 0){
-                tmp2.style.cursor = "pointer";
-                tmp2.style.fill = "orange";
-                tmp2.style.fillOpacity = days[i].length / 5;
-                tmp2.onclick = function(){
-                    showActionList(i, days);
-                };
-            }else{
-                tmp2.style.fill = "grey";
-                tmp2.style.fillOpacity = 0.1;
-            }
-            tmp0.appendChild(tmp2);
-            let d = new Date(t - i * 86400000);
-            if(d.getDate() == 1){
-                let tmp3 = document.createElementNS('http://www.w3.org/2000/svg','text');
-                tmp3.setAttribute('x', x);
-                tmp3.setAttribute('y', 20);
-                tmp3.style.fontSize = "12px";
-                tmp3.innerHTML = months[d.getMonth()];
-                tmp0.appendChild(tmp3);
-            }
-        }
-    }
-    for(let i = 0; i < 3; i ++){
-        let y = i * 20 * 2 + 68;
-        let tmp4 = document.createElementNS('http://www.w3.org/2000/svg','text');
-        tmp4.setAttribute('x', 5);
-        tmp4.setAttribute('y', y);
-        tmp4.style.fontSize = "12px";
-        tmp4.innerHTML = ["Mon", "Web", "Fri"][i];
-        tmp0.appendChild(tmp4);
-    }
-}
-
-const dateoptions = {'year': 'numeric', 'month': 'long', 'day': 'numeric'};
-var dateindex = 0;
-function addActionList(days){
-    let acts = [];
-    while(acts.length == 0 && dateindex < days.length){
-        acts = days[dateindex ++];
-    }
-    let t = (new Date).getTime();
-    let d = new Date(t - dateindex * 86400000);
-    let tmp = document.getElementById('actionlist');
-    if(acts.length > 0){
-        let tmp0 = document.createElement("text");
-        tmp0.innerHTML = d.toLocaleDateString("en-US", dateoptions);
-        tmp.appendChild(tmp0);
-    }
-    for(let j = 0; j < acts.length; j ++){
-        let tmp0 = document.createElement("div");
-        tmp0.className = "w3-bar";
-        tmp0.style.margin = '10px';
-        let tmp1 = document.createElement("text");
-        tmp1.innerHTML = " - " + acts[j]['action'] + " ";
-        tmp0.appendChild(tmp1);
-        if(acts[j]['action'] == "submit"){
-            let tmp2 = document.createElement("a");
-            tmp2.href = "#";
-            tmp2.style.color = "blue";
-            tmp2.innerHTML = acts[j]['wname'];
-            tmp0.appendChild(tmp2);
-            let tmp3 = document.createElement("text");
-            tmp3.innerHTML = " to ";
-            tmp0.appendChild(tmp3);
-            let tmp4 = document.createElement("a");
-            tmp4.href = "#";
-            tmp4.style.color = "blue";
-            tmp4.innerHTML = acts[j]['cname'];
-            tmp0.appendChild(tmp4);
+        let tmp2 = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        tmp2.setAttribute('x', x);
+        tmp2.setAttribute('y', y);
+        tmp2.setAttribute('width', 15);
+        tmp2.setAttribute('height', 15);
+        tmp2.style.cursor = "pointer";
+        if(days[i] > 0){
+            tmp2.style.fill = "orange";
+            tmp2.style.fillOpacity = days[i] / 5;
         }else{
-            let tmp2 = document.createElement("a");
-            tmp2.href = "#";
-            tmp2.style.color = "blue";
-            tmp2.innerHTML = acts[j]['cname'];
-            tmp0.appendChild(tmp2);
+            tmp2.style.fill = "grey";
+            tmp2.style.fillOpacity = 0.1;
         }
-        tmp.appendChild(tmp0);
-    }
-}
-
-function showActionList(i, days){
-    let tmp = document.getElementById('actionlist');
-    tmp.innerHTML = "";
-    dateindex = i;
-    addActionList(days);
-}
-
-function printActions(days){
-    let data = document.getElementById('data');
-    let tmp = document.createElement("div");
-    tmp.id = "actionlist";
-    tmp.className = "w3-row";
-    tmp.style.marginTop = '10px';
-    tmp.style.marginBottom = '10px';
-    tmp.style.padding = "10px";
-    data.appendChild(tmp);
-    dateindex = 0;
-    for(let i = 0; i < 5; i ++){
-        addActionList(days);
-    }
-    let tmp0 = document.createElement("button");
-    tmp0.className = "w3-bar w3-button w3-pale-yellow";
-    tmp0.style.margin = '10px';
-    tmp0.innerHTML = "Load More Activities!";
-    tmp0.onclick = function(){
-        for(let i = 0; i < 5; i ++){
-            addActionList(days);
-        }
-    };
-    data.appendChild(tmp0);
-}
-
-function printView(acts){
-    let days = new Array(371);
-    for(let i = 0; i < days.length; i ++){
-        days[i] = [];
-    }
-    let t = (new Date).getTime();
-    for(let i = 0; i < acts.length; i ++){
-        let d = Math.floor((t - acts[i]['adate']) / 86400000);
-        if(d < 371){
-            days[d].push(acts[i]);
+        tmp0.appendChild(tmp2);
+        let d = new Date(t - i * 86400000);
+        if(d.getDate() == 1){
+            let tmp3 = document.createElementNS('http://www.w3.org/2000/svg','text');
+            tmp3.setAttribute('x', x);
+            tmp3.setAttribute('y', 20);
+            tmp3.style.fontSize = "12px";
+            tmp3.innerHTML = months[d.getMonth()];
+            tmp0.appendChild(tmp3);
         }
     }
-    printCalendar(days);
-    printActions(days);
 }
 
 // ---------------- INTERACTION ---------------- //
@@ -537,9 +424,9 @@ function openTab(event, tab){
     currentTab = tab;
     let tablinks = document.getElementsByClassName("tablink");
     for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" w3-amber", "");
+        tablinks[i].className = tablinks[i].className.replace(" w3-orange", "");
     }
-    event.currentTarget.className += " w3-amber";
+    event.currentTarget.className += " w3-orange";
     showTab();
 }
 
