@@ -16,26 +16,93 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const yRange = 100;
-const cRange = 80;
-const length = 500;
-const size = 100;
-const gap = 10;
-const n = width / (size + gap);
+const n = 20;
+const rMin = 20;
+const rMax = 40;
+const cRange = 120;
+const rRatio = 0.3;
+const lRatio = 0.08;
 
-for(let i = 0; i < n; i ++){
-    let x = (size + gap) * i + gap / 2;
-    let y = height / 2 + Math.random() * yRange - yRange / 2 - length / 2;
-    let cx = x + size / 2;
-    let cy = y + length / 2;
-    let grd = ctx.createRadialGradient(cx, cy, 10, cx, cy, length / 2);
-    let c = 153 + Math.random() * cRange - cRange / 2;
-    grd.addColorStop(0, "hsl("+c+",75%,65%)");
-    grd.addColorStop(0.3, "hsl("+c+",75%,65%)");
-    grd.addColorStop(1, "#fff7");
-    ctx.fillStyle = grd;
-    ctx.fillRect(x, y, size, length);
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
 }
+
+function addCircle(x, y, r, c = "#aaa"){
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+function addLine(p1, p2, w = 5, c = "#aaa"){
+    ctx.strokeStyle = c;
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+    ctx.stroke();
+}
+
+var arr = [];
+for(let i = 0; i < n; i ++){
+    let x = Math.random() * width;
+    let y = Math.random() * height;
+    let minD = width;
+    let r = Math.random() * (rMax - rMin) + rMin;
+    for(let j = 0; j < arr.length; j ++){
+        let d = dist(arr[j], [x, y]);
+        if(d < minD){
+            minD = d;
+        }
+    }
+    if(minD > r * (1 + rRatio)){
+        let c = Math.random() * cRange;
+        arr.push([x, y, r, c]);
+    }
+}
+
+function updateCircles(arr){
+    for(let i = 0; i < arr.length; i ++){
+        arr[i][3] = (arr[i][3] + 1) % 360;
+    }
+    return arr;
+}
+
+function drawCircles(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let x = arr[i][0];
+        let y = arr[i][1];
+        let r = arr[i][2];
+        let c = arr[i][3];
+        addCircle(x, y, r, "hsl("+c+",75%,65%)");
+        addCircle(x, y, r * rRatio);
+    }
+}
+
+function drawLinks(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let tarr = [];
+        for(let j = 0; j < arr.length; j ++){
+            let d = dist(arr[i], arr[j]);
+            if(i != j){
+                tarr.push([j, d]);
+            }
+        }
+        tarr = tarr.sort(function(a, b){return a[1] - b[1];});
+        let w = (arr[i][2] + arr[tarr[0][0]][2]) * lRatio;
+        addLine(arr[i], arr[tarr[0][0]], w);
+    }
+}
+
+function loop(){
+    arr = updateCircles(arr);
+    ctx.clearRect(0, 0, width, height);
+    drawCircles(arr);
+    drawLinks(arr);
+    requestAnimationFrame(loop);
+}
+
+loop();
 
     </script>
 </body>
