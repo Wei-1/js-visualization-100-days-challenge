@@ -29,4 +29,5 @@ Some testing styles for other personal projects
 1. [Challenge 3 Tab Calendar](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-26.html)
 1. [Challenge Activity Selection](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-27.html)
 1. [Gradient Rectangles](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-28.html)
-1. [Linked Circles](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Linked Circles](https://wei-1.github.io/js-visualization-100-days-challenge/2021-10-29.html)
+1. [Random Ellipse](https://wei-1.github.io/js-visualization-100-days-challenge/)
