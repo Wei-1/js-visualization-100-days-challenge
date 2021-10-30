@@ -1,5 +1,6 @@
 <html>
 <body style="background-color:#000;">
+    <canvas id="nebula" style="position:absolute;top:0%;left:0%"></canvas>
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
@@ -16,86 +17,86 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const n = 50;
-const rSize = 40;
-const wSize = 5;
-const bSize = 3;
-const lRatio = 0.3;
+const nebula = document.getElementById('nebula');
+nebula.width  = width;
+nebula.height = height;
+const nba = nebula.getContext('2d');
 
-function trans3Dto2D(x3d, y3d, z3d){
-    let x = width / 2 +
-        (x3d - 0.5) * width * lRatio +
-        (x3d - 0.5) * width * z3d;
-    let y = height / 2 +
-        (y3d - 0.5) * height * lRatio +
-        (y3d - 0.5) * height * z3d;
-    return [x, y];
+const n = 100;
+const rSize = 10;
+const rRatio = 0.7;
+const scaleSize = 4;
+const whr = width / height;
+const tRatio = 0.003;
+const vRatio = 0.2;
+
+const noise = document.createElement("canvas");
+noise.width  = width;
+noise.height = height;
+const b = noise.getContext('2d');
+let imageData = b.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+let i = 0;
+while (i < pixels.length) {
+    pixels[i++] = Math.random() * 100;
+    pixels[i++] = Math.random() * 256;
+    pixels[i++] = Math.random() * 256;
+    pixels[i++] = Math.random() * 80;
 }
+b.putImageData(imageData, 0, 0);
+
+function perlinNoise() {
+    for (let dw = scaleSize; dw <= width; dw *= 2) {
+        let dh = dw / whr;
+        let x = Math.random() * (width - dw);
+        let y = Math.random() * (height - dh);
+        nba.globalAlpha = scaleSize / dw;
+        nba.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+    }
+}
+perlinNoise();
 
 let arr = [];
 for(let i = 0; i < n; i ++){
-    let x3d = Math.random();
-    let y3d = Math.random();
-    let z3d = Math.random();
-    let roll = Math.random() * 2 * Math.PI;
-    let pitch = Math.random() * 2 * Math.PI;
-    let yaw = Math.random() * 2 * Math.PI;
-    arr.push([x3d, y3d, z3d, roll, pitch, yaw]);
-}
-arr = arr.sort(function(a, b){return a[2] - b[2];});
-
-for(let i = 0; i < n; i ++){
-    let xyzrpy = arr[i];
-    let x3d = xyzrpy[0], y3d = xyzrpy[1], z3d = xyzrpy[2];
-    let roll = xyzrpy[3], pitch = xyzrpy[4], yaw = xyzrpy[5];
-    let xy = trans3Dto2D(x3d, y3d, z3d);
-    let x = xy[0], y = xy[1];
-    let r = rSize * lRatio + rSize * z3d;
-    let s = Math.abs(r * Math.cos(pitch) * Math.cos(yaw));
-    let w = 3 + wSize * z3d;
-    let br = 2 + bSize - bSize * z3d;
-    ctx.filter = 'blur('+br+'px)';
-    ctx.strokeStyle = "#44f";
-    ctx.lineWidth = w;
-    ctx.beginPath();
-    ctx.ellipse(x, y, r, s, roll, 0, 2 * Math.PI);
-    ctx.stroke();
+    let x = Math.random() * width;
+    let y = Math.random() * height;
+    let r = Math.pow(Math.random(), 2) * rSize + 1;
+    let c = Math.floor(330 + 60 * Math.random()) % 360;
+    arr.push([x, y, r, c]);
 }
 
-for(let i = 0; i < n; i ++){
-    let xyzrpy = arr[i];
-    let x3d = xyzrpy[0], y3d = xyzrpy[1], z3d = xyzrpy[2];
-    let roll = xyzrpy[3], pitch = xyzrpy[4], yaw = xyzrpy[5];
-    let xy = trans3Dto2D(x3d, y3d, z3d);
-    let x = xy[0], y = xy[1];
-    let r = rSize * lRatio + rSize * z3d;
-    let s = Math.abs(r * Math.cos(pitch) * Math.cos(yaw));
-    let w = 3 + wSize * z3d;
-    let br = 2 + bSize - bSize * z3d;
-    ctx.filter = 'blur('+Math.max(1, br - 2)+'px)';
-    ctx.strokeStyle = '#aaf';
-    ctx.lineWidth = Math.max(1, w - 2);
-    ctx.beginPath();
-    ctx.ellipse(x, y, r, s, roll, 0, 2 * Math.PI);
-    ctx.stroke();
+function drawStars(time){
+    for(let l = 0; l < 3; l ++){
+        for(let i = 0; i < n; i ++){
+            let x = arr[i][0], y = arr[i][1];
+            let r = arr[i][2], c = arr[i][3];
+            let a = (r + 1) / rSize;
+            let s = Math.sin((time + x * y) * tRatio) * vRatio + (1 - vRatio);
+            let d = r * Math.pow(a, l) * Math.pow(s, l);
+            ctx.filter = 'blur('+(2-l)+'px)';
+            ctx.strokeStyle = 'hsl('+c+',100%,'+(50+25*l)+'%)';
+            ctx.lineWidth = 5 - l * 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + d, y);
+            ctx.lineTo(x - d, y);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x, y + d);
+            ctx.lineTo(x, y - d);
+            ctx.stroke();
+        }
+    }
 }
 
-for(let i = 0; i < n; i ++){
-    let xyzrpy = arr[i];
-    let x3d = xyzrpy[0], y3d = xyzrpy[1], z3d = xyzrpy[2];
-    let roll = xyzrpy[3], pitch = xyzrpy[4], yaw = xyzrpy[5];
-    let xy = trans3Dto2D(x3d, y3d, z3d);
-    let x = xy[0], y = xy[1];
-    let r = rSize * lRatio + rSize * z3d;
-    let s = Math.abs(r * Math.cos(pitch) * Math.cos(yaw));
-    let w = 3 + wSize * z3d;
-    ctx.filter = 'blur(0px)';
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = Math.max(1, w - 4);
-    ctx.beginPath();
-    ctx.ellipse(x, y, r, s, roll, 0, 2 * Math.PI);
-    ctx.stroke();
+function loop(time){
+    ctx.clearRect(0, 0, width, height);
+    drawStars(time);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, 30);
 }
+
+loop(0);
 
     </script>
 </body>
