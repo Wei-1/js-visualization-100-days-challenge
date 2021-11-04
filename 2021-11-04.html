@@ -1,0 +1,134 @@
+<html>
+<body style="background-color:#eee;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = "#eee";
+ctx.strokeStyle = "#333";
+ctx.lineWidth = 1.5;
+
+const size = 15;
+const w = Math.floor(width / size);
+const h = Math.floor(height / size);
+const limit = 400;
+const space = 20;
+const maxL = 50;
+const radius = 400 / size;
+const dirs = [[ 0,  1], [ 1,  1], [ 1,  0], [ 1, -1],
+              [ 0, -1], [-1, -1], [-1,  0], [-1,  1]];
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+let grid = new Array(h);
+for(let i = 0; i < h; i ++){
+    grid[i] = new Array(w).fill(0);
+    let di = i - h / 2;
+    for(let j = 0; j < w; j ++){
+        let dj = j - w / 2;
+        if(Math.sqrt(di * di + dj * dj) < radius){
+            grid[i][j] = 1;
+        }
+    }
+}
+
+function validMove(x, y, dx, dy){
+    let c = y + dy >= 0 && y + dy < h &&
+            x + dx >= 0 && x + dx < w &&
+            grid[y + dy][x + dx];
+    if(c && dy * dy + dx * dx == 2){
+        c = grid[y][x + dx] || grid[y + dy][x];
+    }
+    return c;
+}
+
+function randomLink(){
+    let arr = [];
+    let x = 0;
+    let y = 0;
+    while(!grid[y][x]){
+        y = randomInt(h);
+        x = randomInt(w);
+    }
+    let d = randomInt(8);
+    grid[y][x] = 0;
+    arr.push([x, y, d]);
+    let c = 0;
+    while(Math.random() * arr.length + arr.length < maxL && c ++ < maxL){
+        let dir = dirs[arr[arr.length - 1][2]];
+        let dx = dir[0], dy = dir[1];
+        if(validMove(x, y, dx, dy)){
+            if(Math.random() < 0.1){
+                d = (d + randomInt(2, -1) + 8) % 8;
+            }
+            grid[y + dy][x + dx] = 0;
+            arr.push([x + dx, y + dy, d]);
+            x = x + dx;
+            y = y + dy;
+        }
+    }
+    return arr;
+}
+
+function sumGrid(){
+    return grid.map(g => g.reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0);
+}
+
+function randomLinks(){
+    let arr = [];
+    let c = 0;
+    while(sumGrid() > space && c ++ < limit){
+        let a = randomLink();
+        if(a.length >= 2){
+            arr.push(a);
+        }
+    }
+    return arr;
+}
+
+function drawLinks(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        ctx.beginPath();
+        ctx.moveTo(a[0][0] * size + size / 2,
+                   a[0][1] * size + size / 2);
+        for(let j = 1; j < a.length; j ++){
+            ctx.lineTo(a[j][0] * size + size / 2,
+                       a[j][1] * size + size / 2);
+        }
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(a[0][0] * size + size / 2,
+                a[0][1] * size + size / 2,
+                3, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(a[a.length-1][0] * size + size / 2,
+                a[a.length-1][1] * size + size / 2,
+                3, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+    }
+}
+
+let arr = randomLinks();
+
+drawLinks(arr);
+
+    </script>
+</body>
+</html>
