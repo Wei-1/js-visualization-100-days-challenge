@@ -37,4 +37,5 @@ Some testing styles for other personal projects
 1. [Kaleidoscope](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-03.html)
 1. [Circuit Board](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-04.html)
 1. [Firework](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-05.html)
-1. [Laser Show](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Laser Show](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-06.html)
+1. [Laser Transition](https://wei-1.github.io/js-visualization-100-days-challenge/)
