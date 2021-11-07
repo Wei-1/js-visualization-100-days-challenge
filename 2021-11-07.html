@@ -1,0 +1,66 @@
+<html>
+<body style="background-color:#222;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickC(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const speed = 0.3;
+const count = 3 * 1000 / step;
+
+function drawLaser(w){
+    if(light > 0){
+        ctx.shadowColor = "hsla(0,0%,100%,1)";
+        ctx.strokeStyle = "hsla(0,0%,100%,0.6)";
+    }else{
+        ctx.shadowColor = "hsla(0,0%,13%,1)";
+        ctx.strokeStyle = "hsla(0,0%,13%,0.6)";
+    }
+    ctx.shadowBlur = Math.max(0.1, 4 * w * w);
+    ctx.lineWidth = Math.max(0.1, w * w);
+    ctx.beginPath();
+    ctx.moveTo(0, height / 2);
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width / 2, height / 2 - w * w / 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width / 2, height / 2 + w * w / 2);
+    ctx.lineTo(width / 2, height);
+    ctx.stroke();
+    setTimeout(function(){
+        if(w < speed * count && w < width){
+            drawLaser(w + speed);
+        }else{
+            light *= -1;
+            switching = false;
+        }
+    }, step);
+}
+
+let light = 1;
+let switching = false;
+function clickC(event){
+    if(!switching){
+        switching = true;
+        drawLaser(0);
+    }
+}
+
+    </script>
+</body>
+</html>
