@@ -1,0 +1,77 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const fontSize = 14;
+const speed = fontSize + 2;
+const w = width / speed;
+const h = height / speed;
+
+ctx.font = fontSize + "pt monospace";
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+let arr = [];
+for(let i = 0; i <= w; i ++){
+    arr.push([i, randomInt(0, -h), String.fromCharCode(randomInt(8587, 33))]);
+}
+
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        if(arr[i][1] < h + 1){
+            arr[i][1] += 1;
+        }else{
+            arr[i][1] = randomInt(0, -h);
+        }
+        tarr.push(arr[i]);
+    }
+    return tarr;
+}
+
+function drawArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        ctx.fillStyle = '#0f0';
+        ctx.fillText(a[2], a[0] * speed, (a[1] - 1) * speed);
+        a[2] = String.fromCharCode(randomInt(8587, 33));
+        ctx.fillStyle = '#fff';
+        ctx.fillText(a[2], a[0] * speed, a[1] * speed);
+        tarr.push(a);
+    }
+    return tarr;
+}
+
+function loop(time){
+    arr = updateArr(arr);
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.fillRect(0, 0, width, height);
+    arr = drawArr(arr);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>

@@ -41,3 +41,4 @@ Some testing styles for other personal projects
 1. [Laser Transition](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-07.html)
 1. [TakoAI Loading](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-08.html)
 1. [Matrix Green Screen](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Random Color Circle](https://wei-1.github.io/js-visualization-100-days-challenge/)
