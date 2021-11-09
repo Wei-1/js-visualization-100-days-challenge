@@ -1,0 +1,50 @@
+<html>
+<body style="background-color:#eee;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const count = 200;
+const ratio = 3;
+const minR = 5;
+const maxR = 25;
+const extraR = 5;
+const coverRatio = 0.4;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+let arr = [];
+for(let i = 0; i < count; i ++){
+    let x = randomInt(width);
+    let y = Math.pow(Math.random(), ratio) * height * coverRatio + minR;
+    let r = randomInt(maxR, minR) + (1 - y / (height * coverRatio)) * extraR;
+    let c = randomInt(360);
+    arr.push([x, y, r, c]);
+}
+
+for(let i = 0; i < count; i ++){
+    let x = arr[i][0], y = arr[i][1];
+    let r = arr[i][2], c = arr[i][3];
+    ctx.fillStyle = "hsl("+c+",100%,60%)";
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+    </script>
+</body>
+</html>
