@@ -44,4 +44,5 @@ Some testing styles for other personal projects
 1. [Random Color Circle](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-10.html)
 1. [Hearts](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-11.html)
 1. [3D Boids](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-12.html)
-1. [3D Boids Predator](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [3D Boids Predator](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-13.html)
+1. [Glitches](https://wei-1.github.io/js-visualization-100-days-challenge/)
