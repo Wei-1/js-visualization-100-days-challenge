@@ -1,6 +1,6 @@
 <html>
 <body style="background-color:#000;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousemove="moveE(event)"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -16,57 +16,71 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const step = 50;
-const count = 50;
-const minR = 20;
-const maxR = 100;
-const minLine = 0;
-const maxLine = 20;
-const minLineH = 5;
-const maxLineH = 100;
-const minLineS = -100;
-const maxLineS = 100;
+const step = 20;
+const fontSize = 20;
+const explodeTime = 120;
+const explodeRatio = 0.3;
+const gap = 4;
+const l = fontSize + gap;
+const wordW = Math.floor(width / l) + 1;
+const wordH = Math.floor(height / l) + 1;
+
+ctx.fillStyle = '#fff';
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 5;
+ctx.font = fontSize + "pt monospace";
 
 function randomInt(max, min = 0){
     return Math.floor(Math.random()*(max-min))+min;
 }
 
-function drawLines(arr){
-    for(let i = 0; i < arr.length; i ++){
-        let p = arr[i];
-        ctx.clearRect(p[2], p[0], width, p[1]);
-        ctx.drawImage(img, 0, p[0], width, p[1], p[2], p[0], width, p[1]);
+let arr = [];
+for(let i = 0; i < wordH; i ++){
+    let a = [];
+    for(let j = 0; j < wordW; j ++){
+        a.push(String.fromCharCode(randomInt(91, 65)));
+    }
+    arr.push(a);
+}
+
+let explodes = [];
+function moveE(event){
+    let x = Math.floor((event.x + gap) / l);
+    let y = Math.floor((event.y + gap) / l);
+    if(arr[y][x] != ''){
+        arr[y][x] = '';
+        explodes.push([event.x, event.y, 0]);
     }
 }
 
-function getLines(){
-    let c = randomInt(maxLine, minLine);
+function drawArr(arr){
+    for(let i = 0; i < wordH; i ++){
+        let a = arr[i];
+        for(let j = 0; j < wordW; j ++){
+            ctx.fillText(a[j], j * l, i * l + fontSize);
+        }
+    }
+}
+
+function drawExplode(explodes){
     let tarr = [];
-    for(let i = 0; i < c; i ++){
-        tarr.push([randomInt(height), randomInt(maxLineH, minLineH), randomInt(maxLineS, minLineS)]);
+    for(let i = 0; i < explodes.length; i ++){
+        let a = explodes[i];
+        ctx.beginPath();
+        ctx.arc(a[0], a[1], a[2] * explodeRatio, 0, 2 * Math.PI);
+        ctx.stroke();
+        if(a[2] < explodeTime){
+            a[2] += step;
+            tarr.push(a);
+        }
     }
     return tarr;
 }
 
-const img = document.createElement("canvas");
-img.width  = width;
-img.height = height;
-const b = img.getContext('2d');
-for(let i = 0; i < count; i ++){
-    b.fillStyle = "hsl("+randomInt(360)+",100%,50%)";
-    b.beginPath();
-    b.arc(randomInt(width), randomInt(height), randomInt(maxR, minR), 0, 2 * Math.PI);
-    b.fill();
-}
-
 function loop(time){
-    let s = Math.sin(time * 0.01);
-    let larr = getLines();
     ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(img, 0, 0);
-    if(s > 0){
-        drawLines(larr);
-    }
+    drawArr(arr);
+    explodes = drawExplode(explodes);
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);
