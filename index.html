@@ -1,6 +1,7 @@
 <html>
 <body style="background-color:#000;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousemove="moveE(event)"></canvas>
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <canvas id="explode" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -16,77 +17,137 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const step = 20;
-const fontSize = 20;
-const explodeTime = 120;
-const explodeRatio = 0.3;
-const gap = 4;
-const l = fontSize + gap;
-const wordW = Math.floor(width / l) + 1;
-const wordH = Math.floor(height / l) + 1;
+const explode = document.getElementById('explode');
+explode.width  = width;
+explode.height = height;
+const etx = explode.getContext('2d');
 
-ctx.fillStyle = '#fff';
-ctx.strokeStyle = '#fff';
-ctx.lineWidth = 5;
-ctx.font = fontSize + "pt monospace";
+const step = 20;
+const count = 1000;
+const minSize = 5;
+const maxSize = 40;
+const minShape = 2; // circle
+const maxShape = 8;
+const radius = 50;
+const speed = 10;
+const gravity = 1;
+const length = 240;
+const speedVibration = 5;
 
 function randomInt(max, min = 0){
     return Math.floor(Math.random()*(max-min))+min;
 }
 
-let arr = [];
-for(let i = 0; i < wordH; i ++){
-    let a = [];
-    for(let j = 0; j < wordW; j ++){
-        a.push(String.fromCharCode(randomInt(91, 65)));
-    }
-    arr.push(a);
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
 }
 
-let explodes = [];
-function moveE(event){
-    let x = Math.floor((event.x + gap) / l);
-    let y = Math.floor((event.y + gap) / l);
-    if(arr[y][x] != ''){
-        arr[y][x] = '';
-        explodes.push([event.x, event.y, 0]);
+function createShape(){
+    return {
+        "t": randomInt(maxShape, minShape),
+        "x": randomInt(width),
+        "y": randomInt(height),
+        "r": randomInt(maxSize, minSize),
+        "a": randomInt(360),
+        "c": randomInt(360)
+    };
+}
+
+for(let i = 0; i < count; i ++){
+    let a = createShape();
+    ctx.fillStyle = "hsl("+a['c']+",100%,60%)";
+    ctx.beginPath();
+    if(a['t'] < 3){
+        ctx.arc(a['x'], a['y'], a['r'], 0, 2 * Math.PI);
+    }else{
+        for(let j = 0; j < a['t']; j ++){
+            let ang = a['a'] + 2 * Math.PI / a['t'] * j;
+            let dx = a['r'] * Math.cos(ang);
+            let dy = a['r'] * Math.sin(ang);
+            if(j == 0){
+                ctx.moveTo(a['x'] + dx, a['y'] + dy);
+            }else{
+                ctx.lineTo(a['x'] + dx, a['y'] + dy);
+            }
+        }
+        ctx.closePath();
+    }
+    ctx.fill();
+}
+
+function createExplode(x, y, j, i, rgb){
+    let d = Math.max(0.001, dist([x, y], [j, i]));
+    return {
+        "x": x,
+        "y": y,
+        "dx": (j - x) / d * speed + randomInt(speedVibration, -speedVibration),
+        "dy": (i - y) / d * speed + randomInt(speedVibration, -speedVibration),
+        "rgb": rgb,
+        "t": 0
+    }
+}
+
+let arr = [];
+function clickE(event){
+    let x = event.x;
+    let y = event.y;
+    let data = ctx.getImageData(0, 0, width, height);
+    let pixels = data.data;
+    for(let i = 0; i < height; i ++){
+        for(let j = 0; j < width; j ++){
+            if(dist([x, y], [j, i]) < radius){
+                let k = (i * width + j) * 4;
+                if(pixels[k+3] > 0){
+                    arr.push(createExplode(x, y, j, i, [pixels[k+0], pixels[k+1], pixels[k+2]]));
+                    pixels[k+0] = 255;
+                    pixels[k+1] = 255;
+                    pixels[k+2] = 255;
+                    pixels[k+3] = 0;
+                }
+            }
+        }
+    }
+    ctx.putImageData(data, 0, 0);
+    if(!run){
+        loop(0);
     }
 }
 
 function drawArr(arr){
-    for(let i = 0; i < wordH; i ++){
-        let a = arr[i];
-        for(let j = 0; j < wordW; j ++){
-            ctx.fillText(a[j], j * l, i * l + fontSize);
-        }
-    }
-}
-
-function drawExplode(explodes){
     let tarr = [];
-    for(let i = 0; i < explodes.length; i ++){
-        let a = explodes[i];
-        ctx.beginPath();
-        ctx.arc(a[0], a[1], a[2] * explodeRatio, 0, 2 * Math.PI);
-        ctx.stroke();
-        if(a[2] < explodeTime){
-            a[2] += step;
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        let alpha = Math.max(0, (1 - a['t'] / length));
+        etx.strokeStyle = "rgba("+a['rgb'][0]+","+a['rgb'][1]+","+a['rgb'][2]+","+alpha+")";
+        etx.beginPath();
+        etx.moveTo(a['x'], a['y']);
+        etx.lineTo(a['x'] + a['dx'], a['y'] + a['dy']);
+        etx.stroke();
+        if(a['y'] < height && a['t'] < length){
+            a['t'] += step;
+            a['x'] += a['dx'];
+            a['y'] += a['dy'];
+            a['dy'] += gravity;
             tarr.push(a);
         }
     }
     return tarr;
 }
 
+let run = false;
 function loop(time){
-    ctx.clearRect(0, 0, width, height);
-    drawArr(arr);
-    explodes = drawExplode(explodes);
-    setTimeout(function(){
-        requestAnimationFrame(loop);
-    }, step);
+    run = true;
+    etx.clearRect(0, 0, width, height);
+    arr = drawArr(arr);
+    if(arr.length > 0){
+        setTimeout(function(){
+            requestAnimationFrame(loop);
+        }, step);
+    }else{
+        etx.clearRect(0, 0, width, height);
+        run = false;
+    }
 }
-
-loop(0);
 
     </script>
 </body>
