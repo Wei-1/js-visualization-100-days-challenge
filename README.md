@@ -47,4 +47,5 @@ Some testing styles for other personal projects
 1. [3D Boids Predator](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-13.html)
 1. [Glitching](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-14.html)
 1. [Explode Words](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-15.html)
-1. [Explode Shapes](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Explode Shapes](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-16.html)
+1. [Sound Visualize](https://wei-1.github.io/js-visualization-100-days-challenge/)

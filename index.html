@@ -1,7 +1,7 @@
 <html>
-<body style="background-color:#000;">
+<body style="background-color:#fff;">
+    <div id="container"></div>
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
-    <canvas id="explode" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -17,137 +17,48 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const explode = document.getElementById('explode');
-explode.width  = width;
-explode.height = height;
-const etx = explode.getContext('2d');
+const minX = Math.floor(width / 4);
+const maxX = Math.floor(width / 4 * 3);
+const minW = 3;
+const fftSize = 128;
+const space = 5;
 
-const step = 20;
-const count = 1000;
-const minSize = 5;
-const maxSize = 40;
-const minShape = 2; // circle
-const maxShape = 8;
-const radius = 50;
-const speed = 10;
-const gravity = 1;
-const length = 240;
-const speedVibration = 5;
-
-function randomInt(max, min = 0){
-    return Math.floor(Math.random()*(max-min))+min;
-}
-
-function dist(p1, p2) {
-    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
-}
-
-function createShape(){
-    return {
-        "t": randomInt(maxShape, minShape),
-        "x": randomInt(width),
-        "y": randomInt(height),
-        "r": randomInt(maxSize, minSize),
-        "a": randomInt(360),
-        "c": randomInt(360)
-    };
-}
-
-for(let i = 0; i < count; i ++){
-    let a = createShape();
-    ctx.fillStyle = "hsl("+a['c']+",100%,60%)";
-    ctx.beginPath();
-    if(a['t'] < 3){
-        ctx.arc(a['x'], a['y'], a['r'], 0, 2 * Math.PI);
-    }else{
-        for(let j = 0; j < a['t']; j ++){
-            let ang = a['a'] + 2 * Math.PI / a['t'] * j;
-            let dx = a['r'] * Math.cos(ang);
-            let dy = a['r'] * Math.sin(ang);
-            if(j == 0){
-                ctx.moveTo(a['x'] + dx, a['y'] + dy);
-            }else{
-                ctx.lineTo(a['x'] + dx, a['y'] + dy);
-            }
-        }
-        ctx.closePath();
-    }
-    ctx.fill();
-}
-
-function createExplode(x, y, j, i, rgb){
-    let d = Math.max(0.001, dist([x, y], [j, i]));
-    return {
-        "x": x,
-        "y": y,
-        "dx": (j - x) / d * speed + randomInt(speedVibration, -speedVibration),
-        "dy": (i - y) / d * speed + randomInt(speedVibration, -speedVibration),
-        "rgb": rgb,
-        "t": 0
+function drawSound(data){
+    const values = Object.values(data);
+    const gap = (maxX - minX) / values.length;
+    ctx.lineWidth = Math.max(minW, gap - space);
+    for(let i = 0; i < values.length; ++i){
+        const value = Math.max(ctx.lineWidth / 2, values[i]);
+        ctx.strokeStyle = "hsl(300,100%,"+Math.floor(Math.min(70, value / 3))+"%)";
+        ctx.beginPath();
+        ctx.moveTo(i * gap + minX, height / 2 - value);
+        ctx.lineTo(i * gap + minX, height / 2 + value);
+        ctx.stroke();
     }
 }
 
-let arr = [];
-function clickE(event){
-    let x = event.x;
-    let y = event.y;
-    let data = ctx.getImageData(0, 0, width, height);
-    let pixels = data.data;
-    for(let i = 0; i < height; i ++){
-        for(let j = 0; j < width; j ++){
-            if(dist([x, y], [j, i]) < radius){
-                let k = (i * width + j) * 4;
-                if(pixels[k+3] > 0){
-                    arr.push(createExplode(x, y, j, i, [pixels[k+0], pixels[k+1], pixels[k+2]]));
-                    pixels[k+0] = 255;
-                    pixels[k+1] = 255;
-                    pixels[k+2] = 255;
-                    pixels[k+3] = 0;
-                }
-            }
-        }
+function init(stream){
+    let audioContext = new AudioContext();
+    let analyser = audioContext.createAnalyser();
+    let source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyser.smoothingTimeConstant = 0.5;
+    analyser.fftSize = fftSize;
+        
+    function renderFrame(time){
+        let data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, width, height);
+        drawSound(data);
+        requestAnimationFrame(renderFrame);
     }
-    ctx.putImageData(data, 0, 0);
-    if(!run){
-        loop(0);
-    }
+    requestAnimationFrame(renderFrame);
 }
 
-function drawArr(arr){
-    let tarr = [];
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        let alpha = Math.max(0, (1 - a['t'] / length));
-        etx.strokeStyle = "rgba("+a['rgb'][0]+","+a['rgb'][1]+","+a['rgb'][2]+","+alpha+")";
-        etx.beginPath();
-        etx.moveTo(a['x'], a['y']);
-        etx.lineTo(a['x'] + a['dx'], a['y'] + a['dy']);
-        etx.stroke();
-        if(a['y'] < height && a['t'] < length){
-            a['t'] += step;
-            a['x'] += a['dx'];
-            a['y'] += a['dy'];
-            a['dy'] += gravity;
-            tarr.push(a);
-        }
-    }
-    return tarr;
-}
-
-let run = false;
-function loop(time){
-    run = true;
-    etx.clearRect(0, 0, width, height);
-    arr = drawArr(arr);
-    if(arr.length > 0){
-        setTimeout(function(){
-            requestAnimationFrame(loop);
-        }, step);
-    }else{
-        etx.clearRect(0, 0, width, height);
-        run = false;
-    }
-}
+navigator.mediaDevices.getUserMedia({
+    video: false,
+    audio: true
+}).then(init);
 
     </script>
 </body>
