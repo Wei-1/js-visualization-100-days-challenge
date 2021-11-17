@@ -48,4 +48,5 @@ Some testing styles for other personal projects
 1. [Glitching](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-14.html)
 1. [Explode Words](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-15.html)
 1. [Explode Shapes](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-16.html)
-1. [Sound Visualize](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Sound Visualize](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-17.html)
+1. [Meteors](https://wei-1.github.io/js-visualization-100-days-challenge/)
