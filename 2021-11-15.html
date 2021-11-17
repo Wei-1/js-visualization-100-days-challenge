@@ -1,0 +1,93 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousemove="moveE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const fontSize = 20;
+const explodeTime = 120;
+const explodeRatio = 0.3;
+const gap = 4;
+const l = fontSize + gap;
+const wordW = Math.floor(width / l) + 1;
+const wordH = Math.floor(height / l) + 1;
+
+ctx.fillStyle = '#fff';
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 5;
+ctx.font = fontSize + "pt monospace";
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+let arr = [];
+for(let i = 0; i < wordH; i ++){
+    let a = [];
+    for(let j = 0; j < wordW; j ++){
+        a.push(String.fromCharCode(randomInt(91, 65)));
+    }
+    arr.push(a);
+}
+
+let explodes = [];
+function moveE(event){
+    let x = Math.floor((event.x + gap) / l);
+    let y = Math.floor((event.y + gap) / l);
+    if(arr[y][x] != ''){
+        arr[y][x] = '';
+        explodes.push([event.x, event.y, 0]);
+    }
+}
+
+function drawArr(arr){
+    for(let i = 0; i < wordH; i ++){
+        let a = arr[i];
+        for(let j = 0; j < wordW; j ++){
+            ctx.fillText(a[j], j * l, i * l + fontSize);
+        }
+    }
+}
+
+function drawExplode(explodes){
+    let tarr = [];
+    for(let i = 0; i < explodes.length; i ++){
+        let a = explodes[i];
+        ctx.beginPath();
+        ctx.arc(a[0], a[1], a[2] * explodeRatio, 0, 2 * Math.PI);
+        ctx.stroke();
+        if(a[2] < explodeTime){
+            a[2] += step;
+            tarr.push(a);
+        }
+    }
+    return tarr;
+}
+
+function loop(time){
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr);
+    explodes = drawExplode(explodes);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>

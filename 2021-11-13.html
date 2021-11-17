@@ -1,0 +1,209 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const count = 200;
+const speed = 4;
+const l = 105;
+const lRatio = 0.01;
+const cx = width / 2;
+const cy = height / 2;
+const range = 50;
+const a0Ratio = 0.007;
+const a1Ratio = 0.02;
+const a2Ratio = 0.1;
+const a3Ratio = 0.1;
+const edge = 25;
+const edgeForce = 1;
+const pRange = 50;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+function dist(p1, p2) {
+    return Math.max(0.001,
+        Math.sqrt(Math.pow(p1[0] - p2[0], 2) +
+        Math.pow(p1[1] - p2[1], 2) +
+        Math.pow(p1[2] - p2[2], 2)));
+}
+
+function normalize(dx, dy, dz){
+    let d = speed / Math.max(0.001, Math.sqrt(dx * dx + dy * dy + dz * dz));
+    return [dx * d, dy * d, dz * d];
+}
+
+let arr = [];
+for(let i = 0; i < count ; i ++){
+    let x = randomInt(l * 2) - l;
+    let y = randomInt(l * 2) - l;
+    let z = randomInt(l * 2) - l;
+    let dx = randomInt(speed);
+    let dy = randomInt(speed);
+    let dz = randomInt(speed);
+    let dxyz = normalize(dx, dy, dz);
+    arr.push([x, y, z, dxyz[0], dxyz[1], dxyz[2]]);
+}
+
+let predator = [0, 0, 0, 0, 0, 0];
+
+function xyz2(x, y, z){
+    let nx = cx + x * ((z + l * 2) * lRatio);
+    let ny = cy + y * ((z + l * 2) * lRatio);
+    return [nx, ny];
+}
+
+function drawLine(p1, p2){
+    ctx.beginPath();
+    ctx.moveTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+    ctx.stroke();
+}
+
+function drawBox(){
+    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = "#000";
+    drawLine(xyz2(-l,-l,-l), xyz2(-l,-l, l));
+    drawLine(xyz2( l,-l,-l), xyz2( l,-l, l));
+    drawLine(xyz2(-l, l,-l), xyz2(-l, l, l));
+    drawLine(xyz2( l, l,-l), xyz2( l, l, l));
+    drawLine(xyz2(-l,-l,-l), xyz2( l,-l,-l));
+    drawLine(xyz2(-l, l,-l), xyz2( l, l,-l));
+    drawLine(xyz2(-l,-l, l), xyz2( l,-l, l));
+    drawLine(xyz2(-l, l, l), xyz2( l, l, l));
+    drawLine(xyz2(-l,-l,-l), xyz2(-l, l,-l));
+    drawLine(xyz2( l,-l,-l), xyz2( l, l,-l));
+    drawLine(xyz2(-l,-l, l), xyz2(-l, l, l));
+    drawLine(xyz2( l,-l, l), xyz2( l, l, l));
+}
+drawBox();
+
+function updatePredator(pd, arr){
+    let nx = pd[0] + pd[3];
+    let ny = pd[1] + pd[4];
+    let nz = pd[2] + pd[5];
+    let txyz = [0, 0, 0];
+    let cnt = 0;
+    for(let i = 0; i < arr.length; i ++){
+        let d = dist(arr[i], [nx, ny, nz]);
+        if(d < pRange){
+            cnt ++;
+            for(let k = 0; k < 3; k ++){
+                txyz[k] += arr[i][k] + arr[i][k + 3];
+            }
+        }
+    }
+    if(cnt > 0){
+        for(let k = 0; k < 3; k ++){
+            txyz[k] /= cnt;
+            txyz[k] -= pd[k];
+        }
+        txyz = normalize(txyz[0], txyz[1], txyz[2]);
+    }
+    for(let k = 0; k < 3; k ++){
+        pd[k] += txyz[k];
+        pd[3+k] = txyz[k];
+    }
+    return pd;
+}
+
+function updateArr(pd, arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let p1 = arr[i].slice();
+        let tcnt = 0;
+        let a = [[0.0, 0.0, 0.0, 0.0],
+                 [0.0, 0.0, 0.0, 0.0],
+                 [0.0, 0.0, 0.0, 0.0]];
+        for(let j = 0; j < arr.length; j ++){
+            let p2 = arr[j];
+            let d = dist(p1, p2);
+            if(j != i && d < range){
+                tcnt += 1;
+                for(let k = 0; k < 3; k ++){
+                    a[k][0] += p2[0+k]; //cohesion
+                    a[k][1] += p2[3+k]; //alignment
+                    a[k][2] += (p1[0+k] - p2[0+k]) * Math.pow(1 - d / range, 2); //Separation
+                }
+            }
+        }
+        let d = dist(pd, p1);
+        if(d < range){
+            for(let k = 0; k < 3; k ++){
+                a[k][3] += p1[k] - pd[k]; //Hide
+            }
+        }
+        for(let k = 0; k < 3; k ++){
+            if(tcnt > 0){
+                p1[3+k] += (a[k][0] / tcnt - p1[k]) * a0Ratio +
+                    a[k][1] / tcnt * a1Ratio +
+                    a[k][2] / tcnt * a2Ratio +
+                    a[k][3] / tcnt * a3Ratio;
+            }
+            if(p1[k] < -l + edge){
+                p1[3+k] += (edge - l - p1[k]) / edge * edgeForce;
+            }
+            if(p1[k] > l - edge){
+                p1[3+k] -= (p1[k] - l + edge) / edge * edgeForce;
+            }
+        }
+        let dxyz = normalize(p1[3], p1[4], p1[5]);
+        for(let k = 0; k < 3; k ++){
+            p1[k] += dxyz[k];
+        }
+        tarr.push([p1[0], p1[1], p1[2], dxyz[0], dxyz[1], dxyz[2]]);
+    }
+    return tarr;
+}
+
+function drawArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        let mt = xyz2(a[0], a[1], a[2]);
+        let lt = xyz2(a[0] + a[3], a[1] + a[4], a[2] + a[5]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#000";
+        drawLine(mt, lt);
+    }
+}
+
+function drawPredator(a){
+    let mt = xyz2(a[0], a[1], a[2]);
+    let lt = xyz2(a[0] + a[3], a[1] + a[4], a[2] + a[5]);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#f00";
+    drawLine(mt, lt);
+}
+
+function loop(time){
+    arr = updateArr(predator, arr);
+    predator = updatePredator(predator, arr);
+    ctx.clearRect(0, 0, width, height);
+    drawBox();
+    drawArr(arr);
+    drawPredator(predator);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>

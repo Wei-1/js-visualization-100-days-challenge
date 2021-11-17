@@ -1,0 +1,64 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const minX = Math.floor(width / 4);
+const maxX = Math.floor(width / 4 * 3);
+const minW = 3;
+const fftSize = 128;
+const space = 5;
+
+function drawSound(data){
+    const values = Object.values(data);
+    const gap = (maxX - minX) / values.length;
+    ctx.lineWidth = Math.max(minW, gap - space);
+    for(let i = 0; i < values.length; ++i){
+        const value = Math.max(ctx.lineWidth / 2, values[i]);
+        ctx.strokeStyle = "hsl(300,100%,"+Math.floor(Math.min(70, value / 3))+"%)";
+        ctx.beginPath();
+        ctx.moveTo(i * gap + minX, height / 2 - value);
+        ctx.lineTo(i * gap + minX, height / 2 + value);
+        ctx.stroke();
+    }
+}
+
+function init(stream){
+    let audioContext = new AudioContext();
+    let analyser = audioContext.createAnalyser();
+    let source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyser.smoothingTimeConstant = 0.5;
+    analyser.fftSize = fftSize;
+        
+    function renderFrame(time){
+        let data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, width, height);
+        drawSound(data);
+        requestAnimationFrame(renderFrame);
+    }
+    requestAnimationFrame(renderFrame);
+}
+
+navigator.mediaDevices.getUserMedia({
+    video: false,
+    audio: true
+}).then(init);
+
+    </script>
+</body>
+</html>
