@@ -51,4 +51,5 @@ Some testing styles for other personal projects
 1. [Sound Visualize](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-17.html)
 1. [Meteors](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-18.html)
 1. [Grass](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-19.html)
-1. [Snowflake](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Snowflake](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-20.html)
+1. [Gantt Chart](https://wei-1.github.io/js-visualization-100-days-challenge/)
