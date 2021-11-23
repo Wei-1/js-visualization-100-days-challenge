@@ -53,4 +53,5 @@ Some testing styles for other personal projects
 1. [Grass](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-19.html)
 1. [Snowflake](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-20.html)
 1. [Gantt Chart](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-21.html)
-1. [Turnable Cube](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Turnable Cube](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-22.html)
+1. [Turnable Buckyball](https://wei-1.github.io/js-visualization-100-days-challenge/)

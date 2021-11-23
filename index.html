@@ -26,16 +26,85 @@ const cy = height / 2;
 const range = 50;
 const tRatio = 0.5;
 
+const φ = 1.618033988749895;
+const vertices = [
+    [ 1, φ, 0], [-1, φ, 0], [ 1,-φ, 0], [-1,-φ, 0],
+    [ 0, 1, φ], [ 0,-1, φ], [ 0, 1,-φ], [ 0,-1,-φ],
+    [ φ, 0, 1], [-φ, 0, 1], [ φ, 0,-1], [-φ, 0,-1]
+];
+const faces = [
+    [ 0, 1, 4], [ 1, 9, 4], [ 4, 9, 5], [ 5, 9, 3],
+    [ 2, 3, 7], [ 3, 2, 5], [ 7,10, 2], [ 0, 8,10],
+    [ 0, 4, 8], [ 8, 2,10], [ 8, 4, 5], [ 8, 5, 2],
+    [ 1, 0, 6], [11, 1, 6], [ 3, 9,11], [ 6,10, 7],
+    [ 3,11, 7], [11, 6, 7], [ 6, 0,10], [ 9, 1,11]
+].map(function(face) {
+    return face.map(function(i) {
+        return vertices[i];
+    });
+});
+const pentIdx =  [ 
+    [[ 1, 4], [ 4, 8], [ 8,10], [10, 6], [ 6, 1]],
+    [[ 0, 4], [ 4, 9], [ 9,11], [11, 6], [ 6, 0]],
+    [[ 3, 7], [ 7,10], [10, 8], [ 8, 5], [ 5, 3]],
+    [[ 5, 9], [ 9,11], [11, 7], [ 7, 2], [ 2, 5]],
+    [[ 0, 1], [ 1, 9], [ 9, 5], [ 5, 8], [ 8, 0]],
+    [[ 4, 9], [ 9, 3], [ 3, 2], [ 2, 8], [ 8, 4]],
+    [[ 1, 0], [ 0,10], [10, 7], [ 7,11], [11, 1]],
+    [[ 2, 3], [ 3,11], [11, 6], [ 6,10], [10, 2]],
+    [[ 0,10], [10, 2], [ 2, 5], [ 5, 4], [ 4, 0]],
+    [[ 1, 4], [ 4, 5], [ 5, 3], [ 3,11], [11, 1]],
+    [[ 7, 2], [ 2, 8], [ 8, 0], [ 0, 6], [ 6, 7]],
+    [[ 1, 6], [ 6, 7], [ 7, 3], [ 3, 9], [ 9, 1]]
+];
+
+function interpolate(p0, p1) {
+    var x0 = p0[0],
+        y0 = p0[1],
+        z0 = p0[2],
+        x1 = p1[0] - x0,
+        y1 = p1[1] - y0,
+        z1 = p1[2] - z0;
+    return function(t) {
+        return [
+            x0 + t * x1,
+            y0 + t * y1,
+            z0 + t * z1
+        ];
+    };
+}
+
+function hexify(face, idx){
+    return [
+        interpolate(face[0], face[1])(1/3),
+        interpolate(face[0], face[1])(2/3),
+        interpolate(face[1], face[2])(1/3),
+        interpolate(face[1], face[2])(2/3),
+        interpolate(face[2], face[0])(1/3),
+        interpolate(face[2], face[0])(2/3)
+    ];
+}
+
+function getHexBall(l){
+    let hexes = faces.map(hexify).map(function(face, idx){
+        face.push(face[0]);
+        return face.map((p) => [p[0] * l, p[1] * l, p[2] * l]);
+    });
+    return hexes;
+}
+
 function xyz2(x, y, z){
     let nx = cx + x * ((z + length * 2) * lRatio);
     let ny = cy + y * ((z + length * 2) * lRatio);
     return [nx, ny];
 }
 
-function drawLine(p1, p2){
+function drawLine(arr){
     ctx.beginPath();
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
+    ctx.moveTo(arr[0][0], arr[0][1]);
+    for(let i = 1; i < arr.length; i ++){
+        ctx.lineTo(arr[i][0], arr[i][1]);
+    }
     ctx.stroke();
 }
 
@@ -55,20 +124,27 @@ function getBox(l){
     tarr.push([[ l,-l, l], [ l, l, l]]);
     return tarr;
 }
+
 let box = getBox(length);
-let arr = getBox(length / 4);
+let arr = getHexBall(length / 4);
 
 function turnPoint(x, y, z){
     let dxr = (ex - sx) / 180 * Math.PI * tRatio;
-    if(dxr == 0){
+    let dyr = (ey - sy) / 180 * Math.PI * tRatio;
+    if(dxr == 0 && dyr == 0){
         return [x, y, z];
     }else{
         let rx = Math.sqrt(x * x + z * z);
-        let rxr = -Math.atan2(z, x);
+        let rxr = Math.atan2(z, x);
         let nxr = rxr + dxr;
-        let nx = rx * Math.sin(nxr);
-        let nz = rx * Math.cos(nxr);
-        return [nx, y, nz];
+        let nx = rx * Math.cos(nxr);
+        let nz = rx * Math.sin(nxr);
+        let ry = Math.sqrt(y * y + nz * nz);
+        let ryr = Math.atan2(nz, y);
+        let nyr = ryr + dyr;
+        let ny = ry * Math.cos(nyr);
+        let nz2 = ry * Math.sin(nyr);
+        return [nx, ny, nz2];
     }
 }
 
@@ -76,7 +152,7 @@ function updateArr(arr){
     let tarr = [];
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
-        tarr.push([turnPoint(...a[0]), turnPoint(...a[1])]);
+        tarr.push(a.map((ai) => turnPoint(...ai)));
     }
     return tarr;
 }
@@ -84,11 +160,10 @@ function updateArr(arr){
 function drawArr(arr){
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
-        let mt = xyz2(...a[0]);
-        let lt = xyz2(...a[1]);
+        let narr = a.map((ai) => xyz2(...ai));
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#000";
-        drawLine(mt, lt);
+        drawLine(narr);
     }
 }
 
