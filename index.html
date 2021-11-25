@@ -1,6 +1,6 @@
 <html>
-<body style="background-color:#eee;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)" onmousemove="moveE(event)"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -17,191 +17,103 @@ canvas.height = height;
 const ctx = canvas.getContext('2d');
 
 const step = 20;
-const gap = 2;
-const count = 10;
-const home = [width / 2, height / 2];
-const food = [width / 4, height / 4];
-const speed = 5;
-const range = 50;
-const rad = Math.PI / 180;
-const aRatio = 30 * rad;
-const smell = 4;
-const smellLeft = 10000 / step;
+const gridSize = 10;
+const gridH = Math.floor(height / gridSize) + 1;
+const gridW = Math.floor(width / gridSize) + 1;
+const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+const rOffset = gOffset = bOffset = 128;
+const rRatio = gRatio = bRatio = 50;
+const flowRatio = 0.20;
+const vRatio = 0.95;
 
-function dist(p1, p2) {
-    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+let grid = [];
+for(let i  = 0; i < gridH; i ++){
+    grid[i] = [];
+    for(let j = 0; j < gridW; j ++){
+        grid[i][j] = [0.0, 0.0, 0.0];
+    }
 }
 
-let ants = []; // x, y, a, s, t
-for(let i = 0; i < count; i ++){
-    ants.push([width / 2, height / 2,
-        Math.random() * 360 * rad, 0, smell]);
+function clickE(e){
+    let ni = Math.floor(e.y / gridSize);
+    let nj = Math.floor(e.x / gridSize);
+    grid[ni][nj][0] += 10;
 }
 
-function move(x, y, a, speed){
-    let dx = speed * Math.sin(a);
-    let dy = speed * Math.cos(a);
-    return [x + dx, y + dy];
-}
-
-function moveHome(ant){
-    let cloesthome = [0, 0, 0];
-    let nxy = move(ant[0], ant[1], ant[2], range / 2);
-    for(let j = 0; j < tohome.length; j ++){
-        let d = dist(tohome[j], nxy);
-        if(d < range){
-            cloesthome[2] += 1;
-            cloesthome[0] += tohome[j][0];
-            cloesthome[1] += tohome[j][1];
+let lx = ly = nx = ny = -1;
+function moveE(e){
+    let ni = Math.floor(e.y / gridSize);
+    let nj = Math.floor(e.x / gridSize);
+    if(lx < 0){
+        nx = nj, ny = ni;
+    }
+    lx = nx, ly = ny;
+    nx = nj, ny = ni;
+    let dx = nx - lx;
+    let dy = ny - ly;
+    let sy = Math.min(ly, ny), ey = Math.max(ly, ny);
+    let sx = Math.min(lx, nx), ex = Math.max(lx, nx);
+    for(let i = sy; i <= ey; i ++){
+        for(let j = sx; j <= ex; j ++){
+            grid[i][j][1] += dx;
+            grid[i][j][2] += dy;
         }
     }
-    if(cloesthome[2] > 0){
-        cloesthome[0] /= cloesthome[2];
-        cloesthome[1] /= cloesthome[2];
-        let dx = cloesthome[0] - ant[0];
-        let dy = cloesthome[1] - ant[1];
-        ant[2] = 0.8 * ant[2] + 0.2 * Math.atan2(dx, dy);
-    }
-    ant[2] += Math.random() * aRatio - aRatio / 2;
-    nxy = move(ant[0], ant[1], ant[2], speed);
-    ant[0] = nxy[0];
-    ant[1] = nxy[1];
-    return ant;
 }
 
-function moveExplore(ant){
-    let cloestfood = [0, 0, 0];
-    let nxy = move(ant[0], ant[1], ant[2], range / 2);
-    for(let j = 0; j < tofood.length; j ++){
-        let d = dist(tofood[j], nxy);
-        if(d < range){
-            cloestfood[2] += 1;
-            cloestfood[0] += tofood[j][0];
-            cloestfood[1] += tofood[j][1];
-        }
-    }
-    if(cloestfood[2] > 0){
-        cloestfood[0] /= cloestfood[2];
-        cloestfood[1] /= cloestfood[2];
-        let dx = cloestfood[0] - ant[0];
-        let dy = cloestfood[1] - ant[1];
-        ant[2] = 0.8 * ant[2] + 0.2 * Math.atan2(dx, dy);
-    }
-    ant[2] += Math.random() * aRatio - aRatio / 2;
-    nxy = move(ant[0], ant[1], ant[2], speed);
-    ant[0] = nxy[0];
-    ant[1] = nxy[1];
-    return ant;
+function valid(i, j){
+    return i >= 0 && i < gridH && j >= 0 && j < gridW;
 }
 
-let tohome = [];
-let tofood = [];
-function updateAnts(ants){
-    let hc = fc = 0;
-    for(let i = 0; i < count; i ++){
-        let ant = ants[i];
-        if(ant[0] < 0) ant[0] += width;
-        if(ant[0] > width) ant[0] -= width;
-        if(ant[1] < 0) ant[1] += height;
-        if(ant[1] > height) ant[1] -= height;
-        if(ant[3] == 1){
-            hc += 1;
-            if(ant[4] == 0){
-                ants[i][4] = smell;
-                tofood.push([ant[0], ant[1], smellLeft]);
-            }else{
-                ants[i][4] -= 1;
+function updateGrid(grid){
+    let clone = JSON.parse(JSON.stringify(grid));
+    for(let i  = 0; i < gridH; i ++){
+        for(let j = 0; j < gridW; j ++){
+            let p = grid[i][j];
+            let cd = p[0];
+            let cvx = p[1] * vRatio;
+            let cvy = p[2] * vRatio;
+            if(valid(i, j + 1)){
+                let np = grid[i][j + 1];
+                let nd = np[0];
+                let flow  = (cd - nd) * flowRatio;
+                clone[i][j][0] -= cvx + flow;
+                clone[i][j + 1][0] += cvx + flow;
+                clone[i][j][1] = cvx + flow;
+                clone[i][j + 1][1] = cvx + flow;
             }
-            if(dist(ant, home) < range){
-                ants[i][3] = 0;
-                ants[i][2] += Math.PI;
-            }else{
-                ants[i] = moveHome(ant);
-            }
-        }else{
-            fc += 1;
-            if(ant[4] == 0){
-                ants[i][4] = smell;
-                tohome.push([ant[0], ant[1], smellLeft]);
-            }else{
-                ants[i][4] -= 1;
-            }
-            if(dist(ant, food) < range){
-                ants[i][3] = 1;
-                ants[i][2] += Math.PI;
-            }else{
-                ants[i] = moveExplore(ant);
+            if(valid(i + 1, j)){
+                let np = grid[i + 1][j];
+                let nd = np[0];
+                let flow  = (cd - nd) * flowRatio;
+                clone[i][j][0] -= cvy + flow;
+                clone[i + 1][j][0] += cvy + flow;
+                clone[i][j][2] = cvy + flow;
+                clone[i + 1][j][2] = cvy + flow;
             }
         }
     }
-    console.log(hc, fc);
-    return ants;
+    return clone;
 }
 
-function updateSmell(){
-    let tarr = [];
-    for(let i = 0; i < tohome.length; i ++){
-        if(tohome[i][2]-- > 0){
-            tarr.push(tohome[i]);
+function drawGrid(grid){
+    for(let i  = 0; i < gridH; i ++){
+        for(let j = 0; j < gridW; j ++){
+            let p = grid[i][j];
+            let y = i * gridSize;
+            let x = j * gridSize;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + p[1] * gridSize, y + p[2] * gridSize);
+            ctx.stroke();
         }
     }
-    tohome = tarr;
-    tarr = [];
-    for(let i = 0; i < tofood.length; i ++){
-        if(tofood[i][2]-- > 0){
-            tarr.push(tofood[i]);
-        }
-    }
-    tofood = tarr;
-}
-
-function drawAnts(ants){
-    ctx.strokeStyle = "#00f";
-    for(let i = 0; i < count; i ++){
-        let ant = ants[i];
-        ctx.beginPath();
-        ctx.moveTo(ant[0], ant[1]);
-        let nxy = move(ant[0], ant[1], ant[2], speed);
-        ctx.lineTo(nxy[0], nxy[1]);
-        ctx.stroke();
-    }
-}
-function drawSmell(){
-    ctx.strokeStyle = "#f00";
-    for(let i = 0; i < tohome.length; i ++){
-        let tmp = tohome[i];
-        ctx.beginPath();
-        ctx.moveTo(tmp[0], tmp[1]);
-        ctx.lineTo(tmp[0]+1, tmp[1]+1);
-        ctx.stroke();
-    }
-    ctx.strokeStyle = "#0f0";
-    for(let i = 0; i < tofood.length; i ++){
-        let tmp = tofood[i];
-        ctx.beginPath();
-        ctx.moveTo(tmp[0], tmp[1]);
-        ctx.lineTo(tmp[0]+1, tmp[1]+1);
-        ctx.stroke();
-    }
-}
-
-function drawHomeFood(){
-    ctx.strokeStyle = "#000";
-    ctx.beginPath();
-    ctx.arc(home[0], home[1], range, 0, 2 * Math.PI);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(food[0], food[1], range, 0, 2 * Math.PI);
-    ctx.stroke();
 }
 
 function loop(time){
-    ants = updateAnts(ants);
-    updateSmell();
+    grid = updateGrid(grid);
     ctx.clearRect(0, 0, width, height);
-    drawHomeFood();
-    drawAnts(ants);
-    drawSmell();
+    drawGrid(grid);
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);

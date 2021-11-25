@@ -1,0 +1,214 @@
+<html>
+<body style="background-color:#eee;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const gap = 2;
+const count = 10;
+const home = [width / 2, height / 2];
+const food = [width / 4, height / 4];
+const speed = 5;
+const range = 50;
+const rad = Math.PI / 180;
+const aRatio = 30 * rad;
+const smell = 4;
+const smellLeft = 10000 / step;
+
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+let ants = []; // x, y, a, s, t
+for(let i = 0; i < count; i ++){
+    ants.push([width / 2, height / 2,
+        Math.random() * 360 * rad, 0, smell]);
+}
+
+function move(x, y, a, speed){
+    let dx = speed * Math.sin(a);
+    let dy = speed * Math.cos(a);
+    return [x + dx, y + dy];
+}
+
+function moveHome(ant){
+    let cloesthome = [0, 0, 0];
+    let nxy = move(ant[0], ant[1], ant[2], range / 2);
+    for(let j = 0; j < tohome.length; j ++){
+        let d = dist(tohome[j], nxy);
+        if(d < range){
+            cloesthome[2] += 1;
+            cloesthome[0] += tohome[j][0];
+            cloesthome[1] += tohome[j][1];
+        }
+    }
+    if(cloesthome[2] > 0){
+        cloesthome[0] /= cloesthome[2];
+        cloesthome[1] /= cloesthome[2];
+        let dx = cloesthome[0] - ant[0];
+        let dy = cloesthome[1] - ant[1];
+        ant[2] = 0.8 * ant[2] + 0.2 * Math.atan2(dx, dy);
+    }
+    ant[2] += Math.random() * aRatio - aRatio / 2;
+    nxy = move(ant[0], ant[1], ant[2], speed);
+    ant[0] = nxy[0];
+    ant[1] = nxy[1];
+    return ant;
+}
+
+function moveExplore(ant){
+    let cloestfood = [0, 0, 0];
+    let nxy = move(ant[0], ant[1], ant[2], range / 2);
+    for(let j = 0; j < tofood.length; j ++){
+        let d = dist(tofood[j], nxy);
+        if(d < range){
+            cloestfood[2] += 1;
+            cloestfood[0] += tofood[j][0];
+            cloestfood[1] += tofood[j][1];
+        }
+    }
+    if(cloestfood[2] > 0){
+        cloestfood[0] /= cloestfood[2];
+        cloestfood[1] /= cloestfood[2];
+        let dx = cloestfood[0] - ant[0];
+        let dy = cloestfood[1] - ant[1];
+        ant[2] = 0.8 * ant[2] + 0.2 * Math.atan2(dx, dy);
+    }
+    ant[2] += Math.random() * aRatio - aRatio / 2;
+    nxy = move(ant[0], ant[1], ant[2], speed);
+    ant[0] = nxy[0];
+    ant[1] = nxy[1];
+    return ant;
+}
+
+let tohome = [];
+let tofood = [];
+function updateAnts(ants){
+    let hc = fc = 0;
+    for(let i = 0; i < count; i ++){
+        let ant = ants[i];
+        if(ant[0] < 0) ant[0] += width;
+        if(ant[0] > width) ant[0] -= width;
+        if(ant[1] < 0) ant[1] += height;
+        if(ant[1] > height) ant[1] -= height;
+        if(ant[3] == 1){
+            hc += 1;
+            if(ant[4] == 0){
+                ants[i][4] = smell;
+                tofood.push([ant[0], ant[1], smellLeft]);
+            }else{
+                ants[i][4] -= 1;
+            }
+            if(dist(ant, home) < range){
+                ants[i][3] = 0;
+                ants[i][2] += Math.PI;
+            }else{
+                ants[i] = moveHome(ant);
+            }
+        }else{
+            fc += 1;
+            if(ant[4] == 0){
+                ants[i][4] = smell;
+                tohome.push([ant[0], ant[1], smellLeft]);
+            }else{
+                ants[i][4] -= 1;
+            }
+            if(dist(ant, food) < range){
+                ants[i][3] = 1;
+                ants[i][2] += Math.PI;
+            }else{
+                ants[i] = moveExplore(ant);
+            }
+        }
+    }
+    console.log(hc, fc);
+    return ants;
+}
+
+function updateSmell(){
+    let tarr = [];
+    for(let i = 0; i < tohome.length; i ++){
+        if(tohome[i][2]-- > 0){
+            tarr.push(tohome[i]);
+        }
+    }
+    tohome = tarr;
+    tarr = [];
+    for(let i = 0; i < tofood.length; i ++){
+        if(tofood[i][2]-- > 0){
+            tarr.push(tofood[i]);
+        }
+    }
+    tofood = tarr;
+}
+
+function drawAnts(ants){
+    ctx.strokeStyle = "#00f";
+    for(let i = 0; i < count; i ++){
+        let ant = ants[i];
+        ctx.beginPath();
+        ctx.moveTo(ant[0], ant[1]);
+        let nxy = move(ant[0], ant[1], ant[2], speed);
+        ctx.lineTo(nxy[0], nxy[1]);
+        ctx.stroke();
+    }
+}
+function drawSmell(){
+    ctx.strokeStyle = "#f00";
+    for(let i = 0; i < tohome.length; i ++){
+        let tmp = tohome[i];
+        ctx.beginPath();
+        ctx.moveTo(tmp[0], tmp[1]);
+        ctx.lineTo(tmp[0]+1, tmp[1]+1);
+        ctx.stroke();
+    }
+    ctx.strokeStyle = "#0f0";
+    for(let i = 0; i < tofood.length; i ++){
+        let tmp = tofood[i];
+        ctx.beginPath();
+        ctx.moveTo(tmp[0], tmp[1]);
+        ctx.lineTo(tmp[0]+1, tmp[1]+1);
+        ctx.stroke();
+    }
+}
+
+function drawHomeFood(){
+    ctx.strokeStyle = "#000";
+    ctx.beginPath();
+    ctx.arc(home[0], home[1], range, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(food[0], food[1], range, 0, 2 * Math.PI);
+    ctx.stroke();
+}
+
+function loop(time){
+    ants = updateAnts(ants);
+    updateSmell();
+    ctx.clearRect(0, 0, width, height);
+    drawHomeFood();
+    drawAnts(ants);
+    drawSmell();
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>
