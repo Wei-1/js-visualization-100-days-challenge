@@ -56,4 +56,5 @@ Some testing styles for other personal projects
 1. [Turnable Cube](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-22.html)
 1. [Turnable Buckyball](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-23.html)
 1. [Ant Simulation Failed](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-24.html)
-1. [Fluid Simulation](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Fluid Simulation](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-25.html)
+1. [Physics Engine Failed](https://wei-1.github.io/js-visualization-100-days-challenge/)

@@ -1,6 +1,6 @@
 <html>
 <body style="background-color:#fff;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)" onmousemove="moveE(event)"></canvas>
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -17,103 +17,133 @@ canvas.height = height;
 const ctx = canvas.getContext('2d');
 
 const step = 20;
-const gridSize = 10;
-const gridH = Math.floor(height / gridSize) + 1;
-const gridW = Math.floor(width / gridSize) + 1;
-const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-const rOffset = gOffset = bOffset = 128;
-const rRatio = gRatio = bRatio = 50;
-const flowRatio = 0.20;
-const vRatio = 0.95;
+const radius = 100;
+const gravity = 1;
+const bRatio = 0.5;
+const PI = Math.PI;
+const PI2 = Math.PI * 2;
 
-let grid = [];
-for(let i  = 0; i < gridH; i ++){
-    grid[i] = [];
-    for(let j = 0; j < gridW; j ++){
-        grid[i][j] = [0.0, 0.0, 0.0];
-    }
+function dist(p1, p2){
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) +
+        Math.pow(p1[1] - p2[1], 2));
 }
 
+function d2abs(x, y){
+    return Math.sqrt(x * x + y * y);
+}
+
+let arr = [];
 function clickE(e){
-    let ni = Math.floor(e.y / gridSize);
-    let nj = Math.floor(e.x / gridSize);
-    grid[ni][nj][0] += 10;
-}
-
-let lx = ly = nx = ny = -1;
-function moveE(e){
-    let ni = Math.floor(e.y / gridSize);
-    let nj = Math.floor(e.x / gridSize);
-    if(lx < 0){
-        nx = nj, ny = ni;
-    }
-    lx = nx, ly = ny;
-    nx = nj, ny = ni;
-    let dx = nx - lx;
-    let dy = ny - ly;
-    let sy = Math.min(ly, ny), ey = Math.max(ly, ny);
-    let sx = Math.min(lx, nx), ex = Math.max(lx, nx);
-    for(let i = sy; i <= ey; i ++){
-        for(let j = sx; j <= ex; j ++){
-            grid[i][j][1] += dx;
-            grid[i][j][2] += dy;
+    let p = [e.x, 0];
+    let check = true;
+    for(let i = 0; i < arr.length; i ++){
+        if(dist(arr[i], p) < radius * 2){
+            check = false;
         }
     }
+    if(check){
+        arr.push([e.x, 0, 0, 0]);
+    }
 }
 
-function valid(i, j){
-    return i >= 0 && i < gridH && j >= 0 && j < gridW;
-}
-
-function updateGrid(grid){
-    let clone = JSON.parse(JSON.stringify(grid));
-    for(let i  = 0; i < gridH; i ++){
-        for(let j = 0; j < gridW; j ++){
-            let p = grid[i][j];
-            let cd = p[0];
-            let cvx = p[1] * vRatio;
-            let cvy = p[2] * vRatio;
-            if(valid(i, j + 1)){
-                let np = grid[i][j + 1];
-                let nd = np[0];
-                let flow  = (cd - nd) * flowRatio;
-                clone[i][j][0] -= cvx + flow;
-                clone[i][j + 1][0] += cvx + flow;
-                clone[i][j][1] = cvx + flow;
-                clone[i][j + 1][1] = cvx + flow;
-            }
-            if(valid(i + 1, j)){
-                let np = grid[i + 1][j];
-                let nd = np[0];
-                let flow  = (cd - nd) * flowRatio;
-                clone[i][j][0] -= cvy + flow;
-                clone[i + 1][j][0] += cvy + flow;
-                clone[i][j][2] = cvy + flow;
-                clone[i + 1][j][2] = cvy + flow;
+function updateArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a1 = arr[i];
+        let colide = [];
+        for(let j = i + 1; j < arr.length; j ++){
+            let a2 = arr[j];
+            let dx = a2[0] - a1[0];
+            let dy = a2[1] - a1[1];
+            let d = d2abs(dx, dy);
+            if(d < radius * 2){
+                let fa1 = Math.atan2(a1[2], a1[3]);
+                let pa1 = Math.atan2(dx, dy);
+                let da1 = Math.abs(fa1 - pa1);
+                let p1 = d2abs(a1[2], a1[3]);
+                let fa2 = Math.atan2(a2[2], a2[3]);
+                let pa2 = pa1 + PI;
+                if(pa2 > PI2){
+                    pa2 -= PI2;
+                }
+                let da2 = Math.abs(fa2 - pa2);
+                let p2 = d2abs(a2[2], a2[3]);
+                p1 *= Math.sin(da1);
+                let nd1x = p1 * dx / d;
+                let nd1y = p1 * dy / d;
+                a1[2] -= nd1x;
+                a1[3] -= nd1y;
+                a2[2] += nd1x * bRatio;
+                a2[3] += nd1y * bRatio;
+                p2 *= Math.sin(da2);
+                let nd2x = p2 * -dx / d;
+                let nd2y = p2 * -dy / d;
+                a2[2] -= nd2x;
+                a2[3] -= nd2y;
+                a1[2] += nd2x * bRatio;
+                a1[3] += nd2y * bRatio;
             }
         }
     }
-    return clone;
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[0] += a[2];
+        a[1] += a[3];
+        a[3] += gravity;
+        if(a[1] > height - radius){
+            let exceed = Math.floor((a[1] - height + radius) * bRatio);
+            if(exceed < 5) exceed = 0;
+            a[1] = height - radius - exceed;
+            if(a[3] > 0){
+                if(a[3] < 5){
+                    a[3] = 0;
+                    a[1] = height - radius;
+                }else{
+                    a[3] = -Math.floor(a[3] * bRatio);
+                }
+            }
+        }
+        if(a[0] < radius){
+            let exceed = Math.floor((radius - a[0]) * bRatio);
+            if(exceed < 5) exceed = 0;
+            a[0] = radius + exceed;
+            if(a[2] < 0){
+                if(a[2] > -5){
+                    a[2] = 0;
+                    a[0] = radius;
+                }else{
+                    a[2] = Math.floor(-a[2] * bRatio);
+                }
+            }
+        }
+        if(a[0] > width - radius){
+            let exceed = Math.floor((a[0] - width + radius) * bRatio);
+            if(exceed < 5) exceed = 0;
+            a[0] = width - radius - exceed;
+            if(a[2] > 0){
+                if(a[2] < 5){
+                    a[2] = 0;
+                    a[0] = width - radius;
+                }else{
+                    a[2] = -Math.floor(a[2] * bRatio);
+                }
+            }
+        }
+    }
 }
 
-function drawGrid(grid){
-    for(let i  = 0; i < gridH; i ++){
-        for(let j = 0; j < gridW; j ++){
-            let p = grid[i][j];
-            let y = i * gridSize;
-            let x = j * gridSize;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + p[1] * gridSize, y + p[2] * gridSize);
-            ctx.stroke();
-        }
+function drawArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        ctx.beginPath();
+        ctx.arc(a[0], a[1], radius, 0, 2 * Math.PI);
+        ctx.stroke();
     }
 }
 
 function loop(time){
-    grid = updateGrid(grid);
+    updateArr(arr);
     ctx.clearRect(0, 0, width, height);
-    drawGrid(grid);
+    drawArr(arr);
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);
