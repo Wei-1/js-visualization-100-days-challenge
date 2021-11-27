@@ -1,6 +1,15 @@
 <html>
-<body style="background-color:#fff;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
+<style>
+div {
+    position: absolute;
+    cursor: move;
+}
+</style>
+<body style="background-color:#fff;font-size:30px">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <div id="red" style="color:red;">Ж</div>
+    <div id="green" style="color:green;">Ӂ</div>
+    <div id="blue" style="color:blue;">Ӝ</div>
     <script>
 
 let width = window.innerWidth
@@ -15,135 +24,157 @@ const canvas = document.getElementById('canvas');
 canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
+ctx.lineWidth = 5;
 
 const step = 20;
 const radius = 100;
-const gravity = 1;
-const bRatio = 0.5;
-const PI = Math.PI;
-const PI2 = Math.PI * 2;
+const elemR = 50;
+const period = 100;
+const initR = 200;
+const fontSize = 30;
+const speed = 3;
+const home = [width / 2, height / 2];
+
+const elems = ["red", "green", "blue"];
+for(let i = 0; i < 3; i ++){
+    let obj = document.getElementById(elems[i])
+    dragElement(obj);
+    let dx = initR * Math.sin(2 * Math.PI / 3 * i);
+    let dy = initR * -Math.cos(2 * Math.PI / 3 * i);
+    obj.style.left = dx + width / 2 - fontSize / 2;
+    obj.style.top = dy + height / 2;
+}
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+function dragElement(obj) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    obj.onmousedown = dragMouseDown;
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        obj.style.top = obj.offsetTop - pos2;
+        obj.style.left = obj.offsetLeft - pos1;
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+function getElemXY(obj){
+    let x = parseInt(obj.style.left, 10) + fontSize / 2;
+    let y = parseInt(obj.style.top, 10) + fontSize / 2 + 3;
+    return [x, y];
+}
 
 function dist(p1, p2){
     return Math.sqrt(Math.pow(p1[0] - p2[0], 2) +
         Math.pow(p1[1] - p2[1], 2));
 }
 
-function d2abs(x, y){
-    return Math.sqrt(x * x + y * y);
+function genA(){
+    let x = 0, y = 0, dx = 0, dy = 0, t = randomInt(3);
+    let r = Math.random();
+    if(r < 0.25){
+        y = randomInt(height);
+    }else if(r < 0.5){
+        x = randomInt(width);
+    }else if(r < 0.75){
+        x = width;
+        y = randomInt(height);
+    }else{
+        x = randomInt(width);
+        y = height;
+    }
+    let d = dist([x, y], home);
+    dx = (home[0] - x) / d * speed;
+    dy = (home[1] - y) / d * speed;
+    return [x, y, dx, dy, t];
 }
 
 let arr = [];
-function clickE(e){
-    let p = [e.x, 0];
-    let check = true;
-    for(let i = 0; i < arr.length; i ++){
-        if(dist(arr[i], p) < radius * 2){
-            check = false;
-        }
-    }
-    if(check){
-        arr.push([e.x, 0, 0, 0]);
-    }
-}
-
 function updateArr(arr){
-    for(let i = 0; i < arr.length; i ++){
-        let a1 = arr[i];
-        let colide = [];
-        for(let j = i + 1; j < arr.length; j ++){
-            let a2 = arr[j];
-            let dx = a2[0] - a1[0];
-            let dy = a2[1] - a1[1];
-            let d = d2abs(dx, dy);
-            if(d < radius * 2){
-                let fa1 = Math.atan2(a1[2], a1[3]);
-                let pa1 = Math.atan2(dx, dy);
-                let da1 = Math.abs(fa1 - pa1);
-                let p1 = d2abs(a1[2], a1[3]);
-                let fa2 = Math.atan2(a2[2], a2[3]);
-                let pa2 = pa1 + PI;
-                if(pa2 > PI2){
-                    pa2 -= PI2;
-                }
-                let da2 = Math.abs(fa2 - pa2);
-                let p2 = d2abs(a2[2], a2[3]);
-                p1 *= Math.sin(da1);
-                let nd1x = p1 * dx / d;
-                let nd1y = p1 * dy / d;
-                a1[2] -= nd1x;
-                a1[3] -= nd1y;
-                a2[2] += nd1x * bRatio;
-                a2[3] += nd1y * bRatio;
-                p2 *= Math.sin(da2);
-                let nd2x = p2 * -dx / d;
-                let nd2y = p2 * -dy / d;
-                a2[2] -= nd2x;
-                a2[3] -= nd2y;
-                a1[2] += nd2x * bRatio;
-                a1[3] += nd2y * bRatio;
-            }
-        }
-    }
+    let tarr = [];
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
         a[0] += a[2];
         a[1] += a[3];
-        a[3] += gravity;
-        if(a[1] > height - radius){
-            let exceed = Math.floor((a[1] - height + radius) * bRatio);
-            if(exceed < 5) exceed = 0;
-            a[1] = height - radius - exceed;
-            if(a[3] > 0){
-                if(a[3] < 5){
-                    a[3] = 0;
-                    a[1] = height - radius;
-                }else{
-                    a[3] = -Math.floor(a[3] * bRatio);
-                }
+        if(dist(a, home) < radius){
+            console.log("Explode!");
+        }else if(a[0] > 0 && a[0] < width && a[1] > 0 && a[1] < height){
+            let obj = document.getElementById(elems[a[4]]);
+            let xy = getElemXY(obj);
+            let d = dist(xy, a);
+            if(d <= elemR){
+                check = false;
+                ctx.strokeStyle = elems[a[4]];
+                ctx.beginPath();
+                ctx.moveTo(xy[0], xy[1]);
+                ctx.lineTo(a[0], a[1]);
+                ctx.stroke();
+            }else{
+                tarr.push(a);
             }
         }
-        if(a[0] < radius){
-            let exceed = Math.floor((radius - a[0]) * bRatio);
-            if(exceed < 5) exceed = 0;
-            a[0] = radius + exceed;
-            if(a[2] < 0){
-                if(a[2] > -5){
-                    a[2] = 0;
-                    a[0] = radius;
-                }else{
-                    a[2] = Math.floor(-a[2] * bRatio);
-                }
-            }
-        }
-        if(a[0] > width - radius){
-            let exceed = Math.floor((a[0] - width + radius) * bRatio);
-            if(exceed < 5) exceed = 0;
-            a[0] = width - radius - exceed;
-            if(a[2] > 0){
-                if(a[2] < 5){
-                    a[2] = 0;
-                    a[0] = width - radius;
-                }else{
-                    a[2] = -Math.floor(a[2] * bRatio);
-                }
-            }
-        }
+    }
+    if(tarr.length == 0){
+        tarr.push(genA());
+    }
+    return tarr;
+}
+
+function drawElem(){
+    for(let i = 0; i < 3; i ++){
+        let obj = document.getElementById(elems[i]);
+        let xy = getElemXY(obj);
+        ctx.strokeStyle = elems[i];
+        ctx.beginPath();
+        ctx.arc(xy[0], xy[1], elemR, 0, 2 * Math.PI);
+        ctx.stroke();
     }
 }
 
 function drawArr(arr){
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
+        ctx.strokeStyle = elems[a[4]];
         ctx.beginPath();
-        ctx.arc(a[0], a[1], radius, 0, 2 * Math.PI);
+        ctx.moveTo(a[0] - a[2], a[1] - a[3]);
+        ctx.lineTo(a[0] + a[2], a[1] + a[3]);
         ctx.stroke();
     }
 }
 
+function drawHome(){
+    ctx.fillStyle = "#888";
+    ctx.beginPath();
+    ctx.arc(home[0], home[1], radius, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
 function loop(time){
-    updateArr(arr);
     ctx.clearRect(0, 0, width, height);
+    arr = updateArr(arr);
+    drawElem(time);
     drawArr(arr);
+    drawHome();
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);
