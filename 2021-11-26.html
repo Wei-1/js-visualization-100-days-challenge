@@ -1,0 +1,156 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const radius = 100;
+const gravity = 1;
+const bRatio = 0.5;
+const PI = Math.PI;
+const PI2 = Math.PI * 2;
+
+function dist(p1, p2){
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) +
+        Math.pow(p1[1] - p2[1], 2));
+}
+
+function d2abs(x, y){
+    return Math.sqrt(x * x + y * y);
+}
+
+let arr = [];
+function clickE(e){
+    let p = [e.x, 0];
+    let check = true;
+    for(let i = 0; i < arr.length; i ++){
+        if(dist(arr[i], p) < radius * 2){
+            check = false;
+        }
+    }
+    if(check){
+        arr.push([e.x, 0, 0, 0]);
+    }
+}
+
+function updateArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a1 = arr[i];
+        let colide = [];
+        for(let j = i + 1; j < arr.length; j ++){
+            let a2 = arr[j];
+            let dx = a2[0] - a1[0];
+            let dy = a2[1] - a1[1];
+            let d = d2abs(dx, dy);
+            if(d < radius * 2){
+                let fa1 = Math.atan2(a1[2], a1[3]);
+                let pa1 = Math.atan2(dx, dy);
+                let da1 = Math.abs(fa1 - pa1);
+                let p1 = d2abs(a1[2], a1[3]);
+                let fa2 = Math.atan2(a2[2], a2[3]);
+                let pa2 = pa1 + PI;
+                if(pa2 > PI2){
+                    pa2 -= PI2;
+                }
+                let da2 = Math.abs(fa2 - pa2);
+                let p2 = d2abs(a2[2], a2[3]);
+                p1 *= Math.sin(da1);
+                let nd1x = p1 * dx / d;
+                let nd1y = p1 * dy / d;
+                a1[2] -= nd1x;
+                a1[3] -= nd1y;
+                a2[2] += nd1x * bRatio;
+                a2[3] += nd1y * bRatio;
+                p2 *= Math.sin(da2);
+                let nd2x = p2 * -dx / d;
+                let nd2y = p2 * -dy / d;
+                a2[2] -= nd2x;
+                a2[3] -= nd2y;
+                a1[2] += nd2x * bRatio;
+                a1[3] += nd2y * bRatio;
+            }
+        }
+    }
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[0] += a[2];
+        a[1] += a[3];
+        a[3] += gravity;
+        if(a[1] > height - radius){
+            let exceed = Math.floor((a[1] - height + radius) * bRatio);
+            if(exceed < 5) exceed = 0;
+            a[1] = height - radius - exceed;
+            if(a[3] > 0){
+                if(a[3] < 5){
+                    a[3] = 0;
+                    a[1] = height - radius;
+                }else{
+                    a[3] = -Math.floor(a[3] * bRatio);
+                }
+            }
+        }
+        if(a[0] < radius){
+            let exceed = Math.floor((radius - a[0]) * bRatio);
+            if(exceed < 5) exceed = 0;
+            a[0] = radius + exceed;
+            if(a[2] < 0){
+                if(a[2] > -5){
+                    a[2] = 0;
+                    a[0] = radius;
+                }else{
+                    a[2] = Math.floor(-a[2] * bRatio);
+                }
+            }
+        }
+        if(a[0] > width - radius){
+            let exceed = Math.floor((a[0] - width + radius) * bRatio);
+            if(exceed < 5) exceed = 0;
+            a[0] = width - radius - exceed;
+            if(a[2] > 0){
+                if(a[2] < 5){
+                    a[2] = 0;
+                    a[0] = width - radius;
+                }else{
+                    a[2] = -Math.floor(a[2] * bRatio);
+                }
+            }
+        }
+    }
+}
+
+function drawArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        ctx.beginPath();
+        ctx.arc(a[0], a[1], radius, 0, 2 * Math.PI);
+        ctx.stroke();
+    }
+}
+
+function loop(time){
+    updateArr(arr);
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+
+loop(0);
+
+    </script>
+</body>
+</html>
