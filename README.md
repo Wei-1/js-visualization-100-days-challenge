@@ -58,4 +58,5 @@ Some testing styles for other personal projects
 1. [Ant Simulation Failed](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-24.html)
 1. [Fluid Simulation](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-25.html)
 1. [Physics Engine Failed](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-26.html)
-1. [Drag Defence](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Drag Defence](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-27.html)
+1. [Mechanical Design Layout](https://wei-1.github.io/js-visualization-100-days-challenge/)
