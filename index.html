@@ -1,5 +1,5 @@
 <html>
-<body style="background-color:#fff;">
+<body style="background-color:#000;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
@@ -15,143 +15,125 @@ const canvas = document.getElementById('canvas');
 canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
-ctx.strokeStyle = "#999";
-ctx.lineWidth = 3;
+ctx.lineWidth = 2;
 
-const size = 15;
-const w = Math.floor(width / size);
-const h = Math.floor(height / size);
-const limit = 50000;
-const space = 20;
-const maxL = 100;
-const rRatio = 0.3;
-const radius = 400 / size;
-const dirs = [[ 0,  1], [ 1,  1], [ 1,  0], [ 1, -1],
-              [ 0, -1], [-1, -1], [-1,  0], [-1,  1]];
+const step = 20;
+const count = 8;
+const duration = 3000;
+const radius = 100;
+const length = 100;
+const turn = 10;
+
+function dist(p1, p2){
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) +
+        Math.pow(p1[1] - p2[1], 2));
+}
 
 function randomInt(max, min = 0){
     return Math.floor(Math.random()*(max-min))+min;
 }
 
-let grid = new Array(h);
-for(let i = 0; i < h; i ++){
-    grid[i] = new Array(w).fill(1);
+let arr = [];
+for(let i = 0; i < count - 1; i ++){
+    let x = width / 2;
+    let y = height / 2;
+    let dx = radius * Math.sin(i * 2 * Math.PI / (count - 1));
+    let dy = radius * Math.cos(i * 2 * Math.PI / (count - 1));
+    arr.push([x + dx, y + dy]);
+}
+arr.push(arr[0]);
+
+let alllength = 0;
+for(let i = 1; i < count; i ++){
+    alllength += dist(arr[i - 1], arr[i]);
 }
 
-function validMove(x, y, dx, dy){
-    let c = y + dy >= 0 && y + dy < h &&
-            x + dx >= 0 && x + dx < w &&
-            grid[y + dy][x + dx];
-    if(c && dy * dy + dx * dx == 2){
-        c = grid[y][x + dx] || grid[y + dy][x];
+function randomPath(p1, p2){
+    let dx = p2[0] - p1[0];
+    let dy = p2[1] - p1[1];
+    let d = Math.sqrt(dx * dx + dy * dy);
+    let a = Math.random() * 2 * Math.PI;
+    if(d > turn){
+        dx *= turn / d;
+        dy *= turn / d;
+        dx += Math.sin(a) * Math.random() * turn;
+        dy += Math.cos(a) * Math.random() * turn;
     }
-    return c;
+    return [p1[0] + dx, p1[1] + dy];
 }
 
-function inLoop(arr, x, y, dx, dy){
-    let c = false;
+function lighting(p1, p2){
+    let tarr = [];
+    let p0 = [p1[0], p1[1]];
+    while((p1[0] != p2[0] || p1[1] != p2[1]) && arr.length < 1000){
+        let p0 = [p1[0], p1[1]];
+        p1 = randomPath(p0, p2);
+        tarr.push([p0, p1]);
+    }
+    return tarr;
+}
+
+function drawLight(arr){
     for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        if(a[0] == x + dx && a[1] == y + dy){
-            c = true;
-        }
-    }
-    return c;
-}
-
-function indexLoop(arr, x, y, dx, dy){
-    let c = 0;
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        if(a[0] == x + dx && a[1] == y + dy){
-            c = i;
-        }
-    }
-    return c;
-}
-
-function longNoClose(arr){
-    let a0 = arr[0];
-    let al = arr[arr.length - 1];
-    return arr.length > Math.random() * 5 && !(a0[0] == al[0] && a0[1] == al[1]);
-}
-
-function randomLink(){
-    let arr = [];
-    let x = 0;
-    let y = 0;
-    while(!grid[y][x]){
-        y = randomInt(h);
-        x = randomInt(w);
-    }
-    let d = randomInt(8);
-    grid[y][x] = 0;
-    arr.push([x, y, d]);
-    let c = 0;
-    while(Math.random() * arr.length + arr.length < maxL && c ++ < maxL){
-        let dir = dirs[arr[arr.length - 1][2]];
-        let dx = dir[0], dy = dir[1];
-        if(validMove(x, y, dx, dy)){
-            if(Math.random() < rRatio){
-                d = (d + randomInt(3, -1) + 8) % 8;
-            }
-            grid[y + dy][x + dx] = 0;
-            arr.push([x + dx, y + dy, d]);
-            x = x + dx;
-            y = y + dy;
-        }else if(inLoop(arr, x, y, dx, dy)){
-            let ind = indexLoop(arr, x, y, dx, dy);
-            for(let i = 0; i < ind; i ++){
-                grid[arr[i][1]][arr[i][0]] = 1;
-            }
-            arr = arr.slice(ind);
-            arr.push(arr[0]);
-            c = maxL;
-        }
-    }
-    if(arr.length <= 3 || longNoClose(arr)){
-        for(let i = 0; i < arr.length; i ++){
-            grid[arr[i][1]][arr[i][0]] = 1;
-        }
-        return [];
-    }else{
-        return arr;
-    }
-}
-
-function sumGrid(){
-    return grid.map(g => g.reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0);
-}
-
-function randomLinks(){
-    let arr = [];
-    let c = 0;
-    while(sumGrid() > space && c ++ < limit){
-        let a = randomLink();
-        if(a.length > 0){
-            arr.push(a);
-        }
-    }
-    return arr;
-}
-
-function drawLinks(arr){
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
+        ctx.strokeStyle = 'hsl(0,100%,100%)';
         ctx.beginPath();
-        ctx.moveTo(a[0][0] * size + size / 2,
-                   a[0][1] * size + size / 2);
-        for(let j = 1; j < a.length; j ++){
-            ctx.lineTo(a[j][0] * size + size / 2,
-                       a[j][1] * size + size / 2);
-        }
+        ctx.moveTo(arr[i][0][0], arr[i][0][1]);
+        ctx.lineTo(arr[i][1][0], arr[i][1][1]);
         ctx.stroke();
     }
 }
 
-let arr = randomLinks();
+function drawArr(arr, time){
+    let r = (time % duration) / duration * alllength;
+    for(let i = 1; i < count; i ++){
+        ctx.strokeStyle = "#eee";
+        ctx.beginPath();
+        ctx.moveTo(...arr[i - 1]);
+        ctx.lineTo(...arr[i]);
+        ctx.stroke();
+    }
+    let cl = 0;
+    for(let i = 1; i < count; i ++){
+        let x = arr[i - 1][0];
+        let y = arr[i - 1][1];
+        let dx = arr[i][0] - x;
+        let dy = arr[i][1] - y;
+        let d = dist(arr[i - 1], arr[i]);
+        let lp = r - cl - length;
+        let hp = r - cl + length;
+        if(r + length > alllength && cl == 0){
+            hp -= alllength;
+            lp -= alllength;
+        }
+        if(r - length < 0 && cl + d == alllength){
+            hp += alllength;
+            lp += alllength;
+        }
+        let sd = Math.max(0, lp);
+        let ed = Math.min(d, hp);
+        if(sd < ed){
+            let p1 = [x + dx * sd / d, y + dy * sd / d];
+            let p2 = [x + dx * ed / d, y + dy * ed / d];
+            ctx.strokeStyle = "#111";
+            ctx.beginPath();
+            ctx.moveTo(...p1);
+            ctx.lineTo(...p2);
+            ctx.stroke();
+            drawLight(lighting(p1, p2));
+        }
+        cl += d
+    }
+}
 
-drawLinks(arr);
+function loop(time){
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr, time);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+
+loop(0);
 
     </script>
 </body>

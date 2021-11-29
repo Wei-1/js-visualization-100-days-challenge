@@ -1,0 +1,158 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+ctx.strokeStyle = "#999";
+ctx.lineWidth = 3;
+
+const size = 15;
+const w = Math.floor(width / size);
+const h = Math.floor(height / size);
+const limit = 50000;
+const space = 20;
+const maxL = 100;
+const rRatio = 0.3;
+const radius = 400 / size;
+const dirs = [[ 0,  1], [ 1,  1], [ 1,  0], [ 1, -1],
+              [ 0, -1], [-1, -1], [-1,  0], [-1,  1]];
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+let grid = new Array(h);
+for(let i = 0; i < h; i ++){
+    grid[i] = new Array(w).fill(1);
+}
+
+function validMove(x, y, dx, dy){
+    let c = y + dy >= 0 && y + dy < h &&
+            x + dx >= 0 && x + dx < w &&
+            grid[y + dy][x + dx];
+    if(c && dy * dy + dx * dx == 2){
+        c = grid[y][x + dx] || grid[y + dy][x];
+    }
+    return c;
+}
+
+function inLoop(arr, x, y, dx, dy){
+    let c = false;
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        if(a[0] == x + dx && a[1] == y + dy){
+            c = true;
+        }
+    }
+    return c;
+}
+
+function indexLoop(arr, x, y, dx, dy){
+    let c = 0;
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        if(a[0] == x + dx && a[1] == y + dy){
+            c = i;
+        }
+    }
+    return c;
+}
+
+function longNoClose(arr){
+    let a0 = arr[0];
+    let al = arr[arr.length - 1];
+    return arr.length > Math.random() * 5 && !(a0[0] == al[0] && a0[1] == al[1]);
+}
+
+function randomLink(){
+    let arr = [];
+    let x = 0;
+    let y = 0;
+    while(!grid[y][x]){
+        y = randomInt(h);
+        x = randomInt(w);
+    }
+    let d = randomInt(8);
+    grid[y][x] = 0;
+    arr.push([x, y, d]);
+    let c = 0;
+    while(Math.random() * arr.length + arr.length < maxL && c ++ < maxL){
+        let dir = dirs[arr[arr.length - 1][2]];
+        let dx = dir[0], dy = dir[1];
+        if(validMove(x, y, dx, dy)){
+            if(Math.random() < rRatio){
+                d = (d + randomInt(3, -1) + 8) % 8;
+            }
+            grid[y + dy][x + dx] = 0;
+            arr.push([x + dx, y + dy, d]);
+            x = x + dx;
+            y = y + dy;
+        }else if(inLoop(arr, x, y, dx, dy)){
+            let ind = indexLoop(arr, x, y, dx, dy);
+            for(let i = 0; i < ind; i ++){
+                grid[arr[i][1]][arr[i][0]] = 1;
+            }
+            arr = arr.slice(ind);
+            arr.push(arr[0]);
+            c = maxL;
+        }
+    }
+    if(arr.length <= 3 || longNoClose(arr)){
+        for(let i = 0; i < arr.length; i ++){
+            grid[arr[i][1]][arr[i][0]] = 1;
+        }
+        return [];
+    }else{
+        return arr;
+    }
+}
+
+function sumGrid(){
+    return grid.map(g => g.reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0);
+}
+
+function randomLinks(){
+    let arr = [];
+    let c = 0;
+    while(sumGrid() > space && c ++ < limit){
+        let a = randomLink();
+        if(a.length > 0){
+            arr.push(a);
+        }
+    }
+    return arr;
+}
+
+function drawLinks(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        ctx.beginPath();
+        ctx.moveTo(a[0][0] * size + size / 2,
+                   a[0][1] * size + size / 2);
+        for(let j = 1; j < a.length; j ++){
+            ctx.lineTo(a[j][0] * size + size / 2,
+                       a[j][1] * size + size / 2);
+        }
+        ctx.stroke();
+    }
+}
+
+let arr = randomLinks();
+
+drawLinks(arr);
+
+    </script>
+</body>
+</html>
