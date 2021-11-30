@@ -60,4 +60,5 @@ Some testing styles for other personal projects
 1. [Physics Engine Failed](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-26.html)
 1. [Drag Defence](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-27.html)
 1. [Mechanical Design Layout](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-28.html)
-1. [Electricity Line](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Electricity Line](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-29.html)
+1. [Feathers](https://wei-1.github.io/js-visualization-100-days-challenge/)
