@@ -62,4 +62,5 @@ Some testing styles for other personal projects
 1. [Mechanical Design Layout](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-28.html)
 1. [Electricity Line](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-29.html)
 1. [Feather](https://wei-1.github.io/js-visualization-100-days-challenge/2021-11-30.html)
-1. [Comic High-Light Effect](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Comic High-Light Effect](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-01.html)
+1. [Clock](https://wei-1.github.io/js-visualization-100-days-challenge/)
