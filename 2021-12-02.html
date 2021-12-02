@@ -1,0 +1,102 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+ctx.lineCap = "round";
+
+const step = 300;
+const smax = 60;
+const mmax = 60 * 60;
+const hmax = 12 * 60;
+const length = 200;
+const lRatio = 1.2;
+const hRatio = 1.3;
+const mRatio = 1.23;
+const x = width / 2;
+const y = height / 2;
+
+const hl = 100;
+const hw = 15;
+const ml = 150;
+const mw = 6;
+const sl = 170;
+const sw = 2;
+
+function drawBase(){
+    ctx.lineWidth = 2;
+    for(let i = 1; i <= 12; i ++){
+        let a = i / 6 * Math.PI;
+        let dx = length * Math.sin(a);
+        let dy = length * -Math.cos(a);
+        ctx.beginPath();
+        ctx.moveTo(x + dx * lRatio, y + dy * lRatio);
+        ctx.lineTo(x + dx * hRatio, y + dy * hRatio);
+        ctx.stroke();
+        ctx.font = '48px serif';
+        if(i >= 10) dx -= 24;
+        else dx -= 10;
+        dy += 20;
+        ctx.fillText(i, x + dx, y + dy);
+    }
+    for(let i = 1; i <= 60; i ++){
+        if(i % 5 > 0){
+            let a = i / 30 * Math.PI;
+            let dx = length * Math.sin(a);
+            let dy = length * -Math.cos(a);
+            ctx.beginPath();
+            ctx.moveTo(x + dx * lRatio, y + dy * lRatio);
+            ctx.lineTo(x + dx * mRatio, y + dy * mRatio);
+            ctx.stroke();
+        }
+    }
+}
+
+function drawArrow(a, l, w){    
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + l * Math.sin(a), y - l * Math.cos(a));
+    ctx.stroke();
+}
+
+function drawClock(){
+    let d = new Date();
+    let hours = d.getHours() % 12;
+    let minutes = d.getMinutes();
+    let seconds = d.getSeconds();
+    let m = seconds + minutes * 60;
+    let h = minutes + hours * 60;
+    let ha = h / hmax * Math.PI * 2;
+    drawArrow(ha, hl, hw);
+    let ma = m / mmax * Math.PI * 2;
+    drawArrow(ma, ml, mw);
+    let sa = seconds / smax * Math.PI * 2;
+    drawArrow(sa, sl, sw);
+}
+
+function loop(time){
+    ctx.clearRect(0, 0, width, height);
+    drawBase();
+    drawClock();
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
