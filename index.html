@@ -1,5 +1,5 @@
 <html>
-<body style="background-color:#fff;">
+<body style="background-color:#000;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
@@ -18,71 +18,139 @@ const ctx = canvas.getContext('2d');
 ctx.lineCap = "round";
 
 const step = 20;
-const size = 500;
-const sMax = 12;
-const sMin = 8;
-const wStart = width / 2 - size / 2;
-const wEnd = wStart + size;
-const wRatio = 0.12;
-const length = 200;
-const wWidth = 10;
-const lsize = 8;
+const scaleSize = 4;
+const whr = width / height;
+const aRange = 30;
+const speed = 30;
+const ratio = 5;
+const sMax = 8;
+const sMin = 3;
+const wMax = 5;
+const wMin = 2;
 
 function randomInt(max, min = 0){
     return Math.floor(Math.random() * (max-min)) + min;
 }
 
+function hslToRgb(h, s, l){
+    let r, g, b;
+    if(s == 0){ // achromatic
+        r = g = b = l;
+    }else{
+        function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        }
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    return [Math.floor(r * 256),
+        Math.floor(g * 256),
+        Math.floor(b * 256)];
+}
+
+const bg = document.createElement('canvas');
+bg.width  = width;
+bg.height = height;
+const bgx = bg.getContext('2d');
+const noise = document.createElement("canvas");
+noise.width  = width;
+noise.height = height;
+const b = noise.getContext('2d');
+let imageData = b.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+let i = 0;
+while(i < pixels.length){
+    let c = randomInt(256);
+    pixels[i++] = c;
+    pixels[i++] = c;
+    pixels[i++] = c;
+    pixels[i++] = 255;
+}
+b.putImageData(imageData, 0, 0);
+
+function perlinNoise(){
+    for (let dw = scaleSize; dw < width / 4; dw *= 2) {
+        let dh = dw / whr;
+        let x = Math.random() * (width - dw);
+        let y = Math.random() * (height - dh);
+        bgx.globalAlpha = scaleSize / dw;
+        bgx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+    }
+}
+perlinNoise();
+
+function drawBG(){
+    let bgImageData = bgx.getImageData(0, 0, width, height);
+    let bgPixels = bgImageData.data;
+    for(let i = 0; i < width; i ++){
+        for(let j = 0; j < height; j ++){
+            let k = (j * width + i) * 4;
+            let c = bgPixels[k+0] / 256 * 100;
+            let h = Math.max(0, Math.min(60, c - 35)) / 360;
+            let rgb = hslToRgb(h, 1, 0.5);
+            bgPixels[k+0] = rgb[0];
+            bgPixels[k+1] = rgb[1];
+            bgPixels[k+2] = rgb[2];
+            if(c > 66) bgPixels[k+3] = 255;
+            else if(c > 33) bgPixels[k+3] = (c - 33) / 33 * 200 + 50;
+            else bgPixels[k+3] = 50;
+        }
+    }
+    ctx.putImageData(bgImageData, 0, 0);
+}
+
+let arr = [];
 function updateArr(arr){
     let tarr = [];
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
-        a[1] += a[2];
-        if(a[1] < 2 * height){
+        let reg = a[2] / 180 * Math.PI;
+        a[0] += speed * Math.cos(reg);
+        a[1] -= speed * Math.sin(reg);
+        a[2] += aRange * Math.random() - aRange / 2;
+        a[2] = (a[2] - 90) * 0.9 + 90;
+        if(a[1] > -height){
             tarr.push(a);
         }
     }
-    if(Math.random() < wRatio){
-        tarr.push([randomInt(wEnd, wStart),
-            randomInt(0, -height),
-            randomInt(sMax, sMin)]);
+    for(let i = 0; i < ratio; i ++){
+        tarr.push([randomInt(width), height,
+            randomInt(180), randomInt(sMax, sMin),
+            randomInt(60), randomInt(wMax, wMin)]);
     }
     return tarr;
 }
 
-function drawWater(){
-    let r = 0, g = 0, b = 127;
-    let c = Math.floor((255 - b) / lsize);
-    ctx.fillStyle = "rgb("+r+","+g+","+b+")";
-    ctx.fillRect(wStart, 0, size, height);
-    for(let i = 0; i < lsize; i ++){
-        let arr = lines[i];
-        for(let j = 0; j < arr.length; j ++){
-            let a = arr[j];
-            let x = a[0], y = a[1];
-            let grd = ctx.createRadialGradient(x, y, 10, x, y, length);
-            grd.addColorStop(0, "rgb("+(r+128)+","+(g+128)+","+(b+128)+")");
-            grd.addColorStop(0.3, "rgb("+(r+128)+","+(g+128)+","+(b+128)+")");
-            grd.addColorStop(1, "rgb("+r+","+g+","+b+")");
-            ctx.fillStyle = grd;
-            ctx.beginPath();
-            ctx.ellipse(x, y - length, wWidth, length, 0, 0, 2 * Math.PI);
-            ctx.fill();
-        }
-        r += c, g += c, b += c;
+function drawArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        let x = a[0], y = a[1];
+        let reg = a[2] / 180 * Math.PI;
+        let s = a[3], c = a[4], w = a[5];
+        let dx = s * Math.cos(reg);
+        let dy = s * Math.sin(reg);
+        ctx.strokeStyle = "hsla("+c+",100%,50%,0.8)";
+        ctx.lineWidth = w;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + dx, y - dy);
+        ctx.stroke();
     }
-}
-
-let lines = [];
-for(let i = 0; i < lsize; i ++){
-    lines.push([]);
 }
 
 function loop(time){
-    for(let i = 0; i < lsize; i ++){
-        lines[i] = updateArr(lines[i]);
-    }
+    arr = updateArr(arr);
     ctx.clearRect(0, 0, width, height);
-    drawWater();
+    drawBG();
+    drawArr(arr);
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);

@@ -65,4 +65,5 @@ Some testing styles for other personal projects
 1. [Comic High-Light Effect](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-01.html)
 1. [Clock](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-02.html)
 1. [Rainbow](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-03.html)
-1. [Waterfall](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Waterfall](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-04.html)
+1. [Burning Background](https://wei-1.github.io/js-visualization-100-days-challenge/)
