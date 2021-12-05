@@ -1,0 +1,39 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 30;
+const length = height / 4 * 3;
+const colorMax = 300;
+const x = width / 2;
+const y = height;
+const iRatio = 0.2;
+const alpha = 0.1;
+
+for(let i = 0; i < 360; i ++){
+    let a = alpha * Math.sin(i / colorMax * Math.PI);
+    let c = colorMax - i;
+    if(c < 0) c += 360;
+    ctx.strokeStyle = "hsla("+c+",100%,50%,"+a;
+    ctx.beginPath();
+    ctx.arc(x, y, length + i * iRatio, 0, 2 * Math.PI);
+    ctx.stroke();
+}
+
+    </script>
+</body>
+</html>
