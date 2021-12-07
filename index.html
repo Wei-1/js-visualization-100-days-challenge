@@ -1,6 +1,6 @@
 <html>
-<body style="background-color:#000;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousemove="moveE(event)"></canvas>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -17,67 +17,62 @@ canvas.height = height;
 const ctx = canvas.getContext('2d');
 
 const step = 20;
-const aRange = 30;
-const speed = 30;
-const ratio = 10;
-const sMax = 8;
-const sMin = 3;
-const wMax = 5;
-const wMin = 2;
+const size = 30;
+const drop = 60;
+const gravity = 5;
+const speed = 5;
+const radius = 12;
+const tRatio = 0.05;
+const dRatio = 0.4;
 
-let aTune = 90;
-function moveE(event){
-    aTune = (1 - event.x / width) * 180;
-}
-
-function randomInt(max, min = 0){
-    return Math.floor(Math.random() * (max-min)) + min;
-}
-
+let d = drop;
+let x = width / 2;
+let y = size;
+let circle = [x, y, speed];
 let arr = [];
-function updateArr(arr){
-    let tarr = [];
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        let reg = a[2] / 180 * Math.PI;
-        a[0] += speed * Math.cos(reg);
-        a[1] += speed * Math.sin(reg);
-        a[2] += aRange * Math.random() - aRange / 2;
-        a[2] = (a[2] - aTune) * 0.9 + aTune;
-        if(a[0] > -width && a[0] < width * 2 &&
-            a[1] > -height && a[1] < height * 2){
-            tarr.push(a);
-        }
-    }
-    for(let i = 0; i < ratio; i ++){
-        tarr.push([randomInt(width*2, -width), 0,
-            randomInt(180), randomInt(sMax, sMin),
-            randomInt(60), randomInt(wMax, wMin)]);
-    }
-    return tarr;
+function update(){
+    arr = [
+        [x - drop, y,
+         x - drop, y,
+         x - drop, y],
+        [x, y,
+         x - drop * dRatio, y + d,
+         x, y + d],
+        [x + drop * dRatio, y + d,
+         x, y,
+         x + drop, y],
+        [x + drop, y,
+         x + drop, y,
+         width, size]
+    ];
+    circle[1] += circle[2];
+    circle[2] += gravity;
 }
 
-function drawArr(arr){
-    ctx.strokeStyle = "#fff";
+function draw(){
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, size);
     for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        let x = a[0], y = a[1];
-        let reg = a[2] / 180 * Math.PI;
-        let s = a[3], c = a[4], w = a[5];
-        let dx = s * Math.cos(reg);
-        let dy = s * Math.sin(reg);
-        ctx.lineWidth = w;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + dx, y + dy);
-        ctx.stroke();
+        ctx.bezierCurveTo(...arr[i]);
     }
+    ctx.lineTo(width, size);
+    ctx.lineTo(width, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(circle[0], circle[1], radius, 0, 2 * Math.PI);
+    ctx.fill();
 }
 
 function loop(time){
-    arr = updateArr(arr);
+    if((time * tRatio) % drop < d){
+        circle = [x, y, speed];
+    }
+    d = (time * tRatio) % drop;
+    update();
     ctx.clearRect(0, 0, width, height);
-    drawArr(arr);
+    draw();
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);

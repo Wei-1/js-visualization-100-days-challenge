@@ -67,4 +67,5 @@ Some testing styles for other personal projects
 1. [Rainbow](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-03.html)
 1. [Waterfall](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-04.html)
 1. [Burning Background](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-05.html)
-1. [Blowing Snow](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Blowing Snow](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-06.html)
+1. [Water Drop](https://wei-1.github.io/js-visualization-100-days-challenge/)
