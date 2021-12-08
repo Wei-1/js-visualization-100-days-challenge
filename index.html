@@ -1,6 +1,6 @@
 <html>
-<body style="background-color:#000;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onmousemove="moveE(event)"></canvas>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -15,79 +15,56 @@ const canvas = document.getElementById('canvas');
 canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
-ctx.strokeStyle = "#fffd";
 
-const step = 20;
-const ratio = 10;
-const speed = 5;
-const rMax = 5;
-const rMin = 3;
-const gravity = 0.1;
-const shrink = 0.1;
+const size = 100;
+const gap = 24;
 
-function randomFloat(max, min = 0){
-    return Math.random() * (max - min) + min;
-}
-
-function randomInt(max, min = 0){
-    return Math.floor(randomFloat(max, min));
-}
-
-let arr = [];
-function updateArr(arr){
-    let tarr = [];
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        a[0] += a[2];
-        a[1] += a[3];
-        a[3] += gravity;
-        a[4] -= shrink;
-        if(a[4] > 0){
-            tarr.push(a);
-        }
-    }
-    return tarr;
-}
-
-function moveE(e){
-    for(let i = 0; i < ratio; i ++){
-        let x = e.x, y = e.y;
-        let s = randomFloat(speed);
-        let rad = randomFloat(Math.PI * 2);
-        let dx = s * Math.sin(rad);
-        let dy = s * Math.cos(rad);
-        let r = randomFloat(rMax, rMin);
-        let a = randomFloat(Math.PI * 2);
-        arr.push([e.x, e.y, dx, dy, r, a]);
-    }
-}
-
-function drawArr(arr){
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        let x = a[0], y = a[1], z = a[4], r = a[5];
-        let dx1 = z * Math.sin(r);
-        let dy1 = z * Math.cos(r);
-        let dx2 = z * Math.sin(r + Math.PI / 2);
-        let dy2 = z * Math.cos(r + Math.PI / 2);
+let grd = null;
+ctx.lineWidth = gap;
+for(let x = 0; x <= width; x += size){
+    for(let y = 0; y <= height; y += size){
+        grd = ctx.createRadialGradient(x, y + size / 2, 10, x, y+ size / 2, size);
+        grd.addColorStop(0, "#ccc");
+        grd.addColorStop(0.5, "#666");
+        grd.addColorStop(1, "#000");
+        ctx.strokeStyle = grd;
         ctx.beginPath();
-        ctx.moveTo(x + dx1, y + dy1);
-        ctx.lineTo(x - dx1, y - dy1);
-        ctx.moveTo(x + dx2, y + dy2);
-        ctx.lineTo(x - dx2, y - dy2);
+        ctx.moveTo(x, y + gap / 2);
+        ctx.lineTo(x, y + size - gap / 2);
+        ctx.stroke();
+        grd = ctx.createRadialGradient(x + size / 2, y + size / 2, 10, x + size / 2, y+ size / 2, size);
+        grd.addColorStop(0, "#ccc");
+        grd.addColorStop(0.5, "#666");
+        grd.addColorStop(1, "#000");
+        ctx.strokeStyle = grd;
+        ctx.beginPath();
+        ctx.moveTo(x + gap / 2, y + size / 2);
+        ctx.lineTo(x + size - gap / 2, y + size / 2);
         ctx.stroke();
     }
 }
-
-function loop(time){
-    arr = updateArr(arr);
-    ctx.clearRect(0, 0, width, height);
-    drawArr(arr);
-    setTimeout(function(){
-        requestAnimationFrame(loop);
-    }, step);
+for(let x = -size / 2; x <= width; x += size){
+    for(let y = -size / 2; y <= height; y += size){
+        grd = ctx.createRadialGradient(x, y + size / 2, 10, x, y+ size / 2, size);
+        grd.addColorStop(0, "#666");
+        grd.addColorStop(0.5, "#333");
+        grd.addColorStop(1, "#000");
+        ctx.strokeStyle = grd;
+        ctx.beginPath();
+        ctx.moveTo(x, y + gap / 2);
+        ctx.lineTo(x, y + size - gap / 2);
+        ctx.stroke();
+        grd = ctx.createRadialGradient(x + size / 2, y + size / 2, 10, x + size / 2, y+ size / 2, size);
+        grd.addColorStop(0, "#666");
+        grd.addColorStop(0.5, "#333");
+        grd.addColorStop(1, "#000");
+        ctx.strokeStyle = grd;
+        ctx.beginPath();
+        ctx.moveTo(x + gap / 2, y + size / 2);
+        ctx.lineTo(x + size - gap / 2, y + size / 2);
+        ctx.stroke();
+    }
 }
-requestAnimationFrame(loop);
 
     </script>
 </body>
