@@ -1,0 +1,95 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+ctx.lineWidth = 2;
+
+const count = 200;
+const bAngle = 30;
+const radius = 1000;
+const xShift = -200;
+const yShift = 50;
+const fStart = Math.floor(count * 0.15);
+const fAngle = 60;
+const fRatio = 0.1;
+const fLength = 100;
+const cRatio = 7;
+const nRatio = 0.8;
+
+let bone = [];
+for(let i = 0; i < count; i ++){
+    let x = width / 2 + xShift;
+    let y = height / 2 - radius + yShift;
+    let a = i / count * bAngle * Math.PI / 180;
+    let dx = radius * Math.sin(a);
+    let dy = radius * Math.cos(a);
+    bone.push([x + dx, y + dy]);
+}
+
+let fibers = [];
+for(let i = fStart; i < count - 1; i ++){
+    let p1 = bone[i];
+    let p2 = bone[i + 1];
+    let x = p1[0], y = p1[1];
+    let dx = p2[0] - x;
+    let dy = p2[1] - y;
+    let a = Math.atan2(dx, dy);
+    let r = 1 - Math.exp((i - count + 2) * fRatio);
+    let a1 = a + (fAngle * r) * Math.PI / 180;
+    let a2 = a - (fAngle * r) * Math.PI / 180;
+    let dx1 = fLength * Math.sin(a1);
+    let dy1 = fLength * Math.cos(a1);
+    let nx1 = x + dx1;
+    let ny1 = y + dy1;
+    let dx2 = fLength * Math.sin(a2);
+    let dy2 = fLength * Math.cos(a2);
+    let nx2 = x + dx2;
+    let ny2 = y + dy2;
+    if(Math.random() < 0.95 || i > count * nRatio){
+        fibers.push([p1, [x + dx * cRatio, y + dy * cRatio, nx1 - dx * cRatio, ny1 - dy * cRatio, nx1, ny1]]);
+    }
+    if(Math.random() < 0.95 || i > count * nRatio){
+        fibers.push([p1, [x + dx * cRatio, y + dy * cRatio, nx2 - dx * cRatio, ny2 - dy * cRatio, nx2, ny2]]);
+    }
+}
+
+function drawArr(arr){
+    for(let i = 0; i < arr.length - 1; i ++){
+        console.log(arr[i]);
+        ctx.beginPath();
+        ctx.moveTo(...arr[i]);
+        ctx.lineTo(...arr[i + 1]);
+        ctx.stroke();
+    }
+}
+
+drawArr(bone);
+
+function drawCurve(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        ctx.beginPath();
+        ctx.moveTo(...a[0]);
+        ctx.bezierCurveTo(...a[1]);
+        ctx.stroke();
+    }
+}
+
+drawCurve(fibers);
+
+    </script>
+</body>
+</html>
