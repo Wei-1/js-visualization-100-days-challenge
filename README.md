@@ -72,4 +72,5 @@ Some testing styles for other personal projects
 1. [Move Sparkles](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-08.html)
 1. [Weave](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-09.html)
 1. [Spiral](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-10.html)
-1. [Rose](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Rose](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-11.html)
+1. [Glitters](https://wei-1.github.io/js-visualization-100-days-challenge/)

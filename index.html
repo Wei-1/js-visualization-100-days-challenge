@@ -1,5 +1,5 @@
 <html>
-<body style="background-color:#fff;">
+<body style="background-color:#000;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
@@ -16,46 +16,61 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const spiral = 2;
-const size = 20;
-const aRatio = 2;
-const rRatio = 10;
-const cRatio = 10;
-const x = width / 2;
-const y = height / 2;
-const length = 200;
+const step = 20;
+const w = 10;
+const h = 30;
+const tRatio = 0.02;
+const rRatio = 2;
+const speed = 10;
+
+function randomFloat(max, min = 0){
+    return Math.random() * (max - min) + min;
+}
 
 let arr = [];
-for(let i = 0; i < spiral; i ++){
-    let a = [];
-    let r = 2 * Math.PI * i / spiral;
-    for(let j = 0; j < size; j ++){
-        let dx = j * rRatio * Math.sin(j * aRatio + r);
-        let dy = j * rRatio * Math.cos(j * aRatio + r);
-        a.push([dx, dy]);
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[1] += speed;
+        if(a[1] < height * 2){
+            tarr.push(a);
+        }
     }
-    arr.push(a);
+    for(let i = 0; i < rRatio; i ++){
+        tarr.push([randomFloat(width), 0, randomFloat(Math.PI * 2), randomFloat(360)]);
+    }
+    return tarr;
 }
 
-for(let i = 0; i < spiral; i ++){
-    let a = arr[i];
-    for(let j = size - 1; j > 0; j --){
-        let grd = ctx.createRadialGradient(x, y, 10, x, y, j * cRatio);
-        grd.addColorStop(0, "#100");
-        grd.addColorStop(0.5, "#600");
-        grd.addColorStop(1, "#e00");
-        ctx.fillStyle = grd;
-        ctx.beginPath();
-        ctx.moveTo(x + a[j-1][0], y + a[j-1][1]);
-        ctx.bezierCurveTo(
-            x + a[j-1][0] + a[j][0], y + a[j-1][1] + a[j][1],
-            x + a[j-1][0] + a[j][0], y + a[j-1][1] + a[j][1],
-            x + a[j][0], y + a[j][1]);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+function drawArr(arr, time){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        let x = a[0], y = a[1], r = a[2], c = a[3];
+        let dx = h / 2 * Math.sin(r);
+        let dy = h / 2 * Math.cos(r);
+        let l = Math.sin(r + time * tRatio);
+        if(l > 0){
+            let g = l * 50 + 50;
+            ctx.lineWidth = w * l;
+            ctx.strokeStyle = "hsl("+c+",100%,"+g+"%)";
+            ctx.beginPath();
+            ctx.moveTo(x + dx, y + dy);
+            ctx.lineTo(x - dx, y - dy);
+            ctx.stroke();
+        }
     }
 }
+
+function loop(time){
+    arr = updateArr(arr);
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr, time);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
 
     </script>
 </body>
