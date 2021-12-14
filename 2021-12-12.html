@@ -17,39 +17,28 @@ canvas.height = height;
 const ctx = canvas.getContext('2d');
 
 const step = 20;
-const count = 20;
-const aRatio = 0.1;
-const limit = 10;
-const sMax = 10;
-const radius = 80;
-const rRatio = 0.3;
+const w = 10;
+const h = 30;
+const tRatio = 0.02;
+const rRatio = 2;
+const speed = 10;
 
 function randomFloat(max, min = 0){
     return Math.random() * (max - min) + min;
 }
 
 let arr = [];
-for(let i = 0; i < count; i ++){
-    arr.push([randomFloat(width), randomFloat(height),
-        0, 0, randomFloat(width), randomFloat(height)])
-}
-
 function updateArr(arr){
     let tarr = [];
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
-        let dx = a[4] - a[0];
-        let dy = a[5] - a[1];
-        if(Math.sqrt(dx * dx + dy * dy) < limit){
-            a[4] = randomFloat(width);
-            a[5] = randomFloat(height);
-        }else{
-            a[2] = (1 - aRatio) * a[2] + aRatio * Math.sign(dx) * Math.min(sMax, Math.abs(dx));
-            a[3] = (1 - aRatio) * a[3] + aRatio * Math.sign(dy) * Math.min(sMax, Math.abs(dy));
-            a[0] += a[2];
-            a[1] += a[3];
+        a[1] += speed;
+        if(a[1] < height * 2){
+            tarr.push(a);
         }
-        tarr.push(a);
+    }
+    for(let i = 0; i < rRatio; i ++){
+        tarr.push([randomFloat(width), 0, randomFloat(Math.PI * 2), randomFloat(360)]);
     }
     return tarr;
 }
@@ -57,15 +46,19 @@ function updateArr(arr){
 function drawArr(arr, time){
     for(let i = 0; i < arr.length; i ++){
         let a = arr[i];
-        let x = a[0], y = a[1];
-        let grd = ctx.createRadialGradient(x, y, radius * rRatio, x, y, radius);
-        grd.addColorStop(0, "#ffff");
-        grd.addColorStop(0.5, "#fff8");
-        grd.addColorStop(1, "#fff0");
-        ctx.fillStyle = grd;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI);
-        ctx.fill();
+        let x = a[0], y = a[1], r = a[2], c = a[3];
+        let dx = h / 2 * Math.sin(r);
+        let dy = h / 2 * Math.cos(r);
+        let l = Math.sin(r + time * tRatio);
+        if(l > 0){
+            let g = l * 50 + 50;
+            ctx.lineWidth = w * l;
+            ctx.strokeStyle = "hsl("+c+",100%,"+g+"%)";
+            ctx.beginPath();
+            ctx.moveTo(x + dx, y + dy);
+            ctx.lineTo(x - dx, y - dy);
+            ctx.stroke();
+        }
     }
 }
 
