@@ -1,5 +1,5 @@
 <html>
-<body style="background-color:#abe;">
+<body style="background-color:#000;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
     <script>
 
@@ -17,69 +17,105 @@ canvas.height = height;
 const ctx = canvas.getContext('2d');
 
 const step = 20;
-const scaleSize = 4;
-const whr = width / height;
-const tRatio = 0.0005;
+const size = 100;
+const gap = 5;
+const speed = 5;
+const hMax = 400;
+const hMin = 100;
+const xRatio = 0.002;
+const yRatio = 0.001;
+const cx = width / 2;
+const cy = 0;
 
-function randomInt(max, min = 0){
-    return Math.floor(Math.random() * (max-min)) + min;
+function randomFloat(max, min = 0){
+    return Math.random() * (max - min) + min;
 }
 
-const bg = document.createElement('canvas');
-bg.width  = width;
-bg.height = height;
-const bgx = bg.getContext('2d');
-const noise = document.createElement("canvas");
-noise.width  = width;
-noise.height = height;
-const b = noise.getContext('2d');
-let imageData = b.getImageData(0, 0, width, height);
-let pixels = imageData.data;
-let i = 0;
-while(i < pixels.length){
-    let c = randomInt(256);
-    pixels[i++] = c;
-    pixels[i++] = c;
-    pixels[i++] = c;
-    pixels[i++] = 255;
-}
-b.putImageData(imageData, 0, 0);
-
-function perlinNoise(){
-    for (let dw = scaleSize; dw < width / 4; dw *= 2) {
-        let dh = dw / whr;
-        let x = Math.random() * (width - dw);
-        let y = Math.random() * (height - dh);
-        bgx.globalAlpha = scaleSize / dw;
-        bgx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
-    }
-}
-perlinNoise();
-
-function drawBG(time){
-    let cRatio = Math.sin(time * tRatio) / 2 + 0.5;
-    document.body.style.backgroundColor = "hsl(204, 70%, " + 63 * cRatio + "%)";
-    cRatio = Math.max(cRatio, 0.3);
-    let bgImageData = bgx.getImageData(0, 0, width, height);
-    let bgPixels = bgImageData.data;
-    for(let i = 0; i < width; i ++){
-        for(let j = 0; j < height; j ++){
-            let k = (j * width + i) * 4;
-            let c = bgPixels[k+0];
-            bgPixels[k+0] = 255;
-            bgPixels[k+1] = 255;
-            bgPixels[k+2] = 255;
-            if(c > 200) bgPixels[k+3] = 255 * cRatio;
-            else if(c > 100) bgPixels[k+3] = (c - 100) / 100 * 255 * cRatio;
-            else bgPixels[k+3] = 0;
+let arr = [];
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[0] += speed;
+        if(a[0] < width + size){
+            tarr.push(a);
         }
     }
-    ctx.putImageData(bgImageData, 0, 0);
+    if(tarr.length == 0 || tarr[tarr.length - 1][0] > gap){
+        tarr.push([-size, randomFloat(hMax, hMin)]);
+    }
+    return tarr;
+}
+
+function xyz2(x, y, z){
+    let dx = x - cx;
+    let dz = (height - z) - cy;
+    let nx = cx + dx * ((y + width / 2) * xRatio);
+    let ny = cy + dz * ((y + width / 2) * yRatio);
+    return [nx, ny];
+}
+
+const s = size;
+function getBuilding(x, l){
+    let face1 = [xyz2(x, 0, l), xyz2(x + s, 0, l),
+        xyz2(x + s, s, l), xyz2(x, s, l)];
+    let face2 = [xyz2(x, s, l), xyz2(x + s, s, l),
+        xyz2(x + s, s, 0), xyz2(x, s, 0)];
+    let face3 = [];
+    if(x > cx){
+        face3 = [xyz2(x, s, l), xyz2(x, s, 0),
+        xyz2(x, 0, 0), xyz2(x, 0, l)];
+        return [face1, face2, face3];
+    }else if(x < cx - size){
+        face3 = [xyz2(x + s, s, l), xyz2(x + s, s, 0),
+        xyz2(x + s, 0, 0), xyz2(x + s, 0, l)];
+        return [face1, face2, face3];
+    }else{
+        return [face1, face2];
+    }
+}
+
+function drawFaces(faces){
+    for(let i = 0; i < faces.length; i ++){
+        let face = faces[i];
+        ctx.fillStyle = "#000";
+        ctx.strokeStyle = "#fff";
+        ctx.beginPath();
+        ctx.moveTo(...face[0]);
+        ctx.lineTo(...face[1]);
+        ctx.lineTo(...face[2]);
+        ctx.lineTo(...face[3]);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+}
+
+function drawArr(arr){
+    if(arr.length > 0){
+        let cuti = 0;
+        for(let i = 0; i < arr.length; i ++){
+            if(arr[i][0] > cx - size / 2){
+                cuti = Math.max(i, cuti);
+            }
+        }
+        for(let i = 0; i < cuti; i ++){
+            let a = arr[i];
+            let faces = getBuilding(...a);
+            drawFaces(faces);
+        }
+        for(let i = arr.length - 1; i >= cuti; i --){
+            let a = arr[i];
+            let faces = getBuilding(...a);
+            drawFaces(faces);
+        }
+    }
 }
 
 function loop(time){
+    arr = updateArr(arr);
     ctx.clearRect(0, 0, width, height);
-    drawBG(time);
+    drawArr(arr);
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);
