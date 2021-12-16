@@ -1,0 +1,127 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const size = 100;
+const gap = 5;
+const speed = 5;
+const hMax = 400;
+const hMin = 100;
+const xRatio = 0.002;
+const yRatio = 0.001;
+const cx = width / 2;
+const cy = 0;
+
+function randomFloat(max, min = 0){
+    return Math.random() * (max - min) + min;
+}
+
+let arr = [];
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[0] += speed;
+        if(a[0] < width + size){
+            tarr.push(a);
+        }
+    }
+    if(tarr.length == 0 || tarr[tarr.length - 1][0] > gap){
+        tarr.push([-size, randomFloat(hMax, hMin)]);
+    }
+    return tarr;
+}
+
+function xyz2(x, y, z){
+    let dx = x - cx;
+    let dz = (height - z) - cy;
+    let nx = cx + dx * ((y + width / 2) * xRatio);
+    let ny = cy + dz * ((y + width / 2) * yRatio);
+    return [nx, ny];
+}
+
+const s = size;
+function getBuilding(x, l){
+    let face1 = [xyz2(x, 0, l), xyz2(x + s, 0, l),
+        xyz2(x + s, s, l), xyz2(x, s, l)];
+    let face2 = [xyz2(x, s, l), xyz2(x + s, s, l),
+        xyz2(x + s, s, 0), xyz2(x, s, 0)];
+    let face3 = [];
+    if(x > cx){
+        face3 = [xyz2(x, s, l), xyz2(x, s, 0),
+        xyz2(x, 0, 0), xyz2(x, 0, l)];
+        return [face1, face2, face3];
+    }else if(x < cx - size){
+        face3 = [xyz2(x + s, s, l), xyz2(x + s, s, 0),
+        xyz2(x + s, 0, 0), xyz2(x + s, 0, l)];
+        return [face1, face2, face3];
+    }else{
+        return [face1, face2];
+    }
+}
+
+function drawFaces(faces){
+    for(let i = 0; i < faces.length; i ++){
+        let face = faces[i];
+        ctx.fillStyle = "#000";
+        ctx.strokeStyle = "#fff";
+        ctx.beginPath();
+        ctx.moveTo(...face[0]);
+        ctx.lineTo(...face[1]);
+        ctx.lineTo(...face[2]);
+        ctx.lineTo(...face[3]);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+}
+
+function drawArr(arr){
+    if(arr.length > 0){
+        let cuti = 0;
+        for(let i = 0; i < arr.length; i ++){
+            if(arr[i][0] > cx - size / 2){
+                cuti = Math.max(i, cuti);
+            }
+        }
+        for(let i = 0; i < cuti; i ++){
+            let a = arr[i];
+            let faces = getBuilding(...a);
+            drawFaces(faces);
+        }
+        for(let i = arr.length - 1; i >= cuti; i --){
+            let a = arr[i];
+            let faces = getBuilding(...a);
+            drawFaces(faces);
+        }
+    }
+}
+
+function loop(time){
+    arr = updateArr(arr);
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
