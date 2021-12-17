@@ -1,0 +1,122 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <canvas id="light" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const light = document.getElementById('light');
+light.width  = width;
+light.height = height;
+const ltx = light.getContext('2d');
+
+const step = 50;
+const count = 50;
+const minR = 10;
+const maxR = 50;
+const pW = Math.floor(width / 2);
+const pH = Math.floor(height / 2);
+const rLimit = 500;
+const yShift = 200;
+const gRatio = 1 / pW / pH;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+const img = document.createElement("canvas");
+img.width  = pW;
+img.height = pH;
+const b = img.getContext('2d');
+
+function randomPattern(){
+    b.clearRect(0, 0, pW, pH);
+    for(let i = 0; i < count; i ++){
+        b.fillStyle = "hsl("+randomInt(360)+",100%,50%)";
+        b.beginPath();
+        b.arc(randomInt(pW), randomInt(pH),
+            randomInt(maxR, minR), 0, 2 * Math.PI);
+        b.fill();
+    }
+}
+
+function updateArr(arr){
+    ltx.globalAlpha = Math.min(1, Math.max(0, 1 - arr.length * gRatio));
+    ltx.clearRect(0, 0, width, height);
+    let tarr = [];
+    let r = rLimit / arr.length;
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        if(Math.random() < r){
+            let x = a[0], y = a[1];
+            let c = "rgb(" + a[2] + "," + a[3] + "," + a[4] + ")";
+            ctx.fillStyle = c;
+            ctx.fillRect(x, y, 1, 1);
+            let sy = y - randomInt(yShift);
+            let ey = y + randomInt(yShift);
+            ltx.strokeStyle = c;
+            ltx.beginPath();
+            ltx.moveTo(x, sy);
+            ltx.lineTo(x, ey);
+            ltx.stroke();
+        }else{
+            tarr.push(a);
+        }
+    }
+    return tarr;
+}
+
+let arr = [];
+function getArr(){
+    let tarr = [];
+    let imageData = b.getImageData(0, 0, pW, pH);
+    let pixels = imageData.data;
+    let sx = (width - pW) / 2;
+    let sy = (height - pH) / 2;
+    for(let i = 0; i < pW; i ++){
+        for(let j = 0; j < pH; j ++){
+            let k = (j * pW + i) * 4;
+            if(pixels[k+3] > 0){
+                tarr.push([i + sx, j + sy,
+                    pixels[k+0], pixels[k+1], pixels[k+2]]);
+            }
+        }
+    }
+    return tarr;
+}
+
+function clickE(event){
+    if(arr.length == 0){
+        randomPattern();
+        arr = getArr();
+        ctx.clearRect(0, 0, width, height);
+        requestAnimationFrame(loop);
+    }
+}
+
+function loop(time){
+    arr = updateArr(arr);
+    if(arr.length > 0){
+        setTimeout(function(){
+            requestAnimationFrame(loop);
+        }, step);
+    }else{
+        ltx.clearRect(0, 0, width, height);
+    }
+}
+
+    </script>
+</body>
+</html>
