@@ -80,4 +80,5 @@ Some testing styles for other personal projects
 1. [Pattern Emerging](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-16.html)
 1. [Block Transition](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-17.html)
 1. [Linked Trangles](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-18.html)
-1. [Linked 3D Trangles](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Linked 3D Trangles](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-19.html)
+1. [VRM Pose](https://wei-1.github.io/js-visualization-100-days-challenge/)

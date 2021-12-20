@@ -1,6 +1,11 @@
 <html>
 <body style="background-color:#000;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <form id="info" style="position:absolute;top:10px;left:10px"></form>
+    <script src="https://unpkg.com/three@0.133.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.133.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://pixiv.github.io/three-vrm/lib/three-vrm.min.js"></script>
     <script>
 
 let width = window.innerWidth
@@ -11,167 +16,121 @@ let height = window.innerHeight
 || document.documentElement.clientHeight
 || document.body.clientHeight;
 
-const canvas = document.getElementById('canvas');
-canvas.width  = width;
-canvas.height = height;
-const ctx = canvas.getContext('2d');
+const step = 20;
+const TVRMSHBN = THREE.VRMSchema.HumanoidBoneName;
 
-const step = 50;
-const count = 100;
-const circle = 50;
-const limit = 300;
-const aRatio = 0.1;
-const sMax = 3;
-const radius = 10;
-const zLimit = 50;
-const cx = width / 2;
-const cy = height / 4;
-const cz = 0;
-const xRatio = 0.002;
-const yRatio = 0.004;
+const renderer = new THREE.WebGLRenderer({canvas: canvas});
+renderer.setSize(width, height);
 
-function randomFloat(max, min = 0){
-    return Math.random() * (max - min) + min;
-}
+const camera = new THREE.PerspectiveCamera(30.0, width / height, 0.1, 20.0);
+camera.position.set(0.0, 1.0, 5.0);
 
-function dist(p1, p2){
-    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
-}
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.screenSpacePanning = true;
+controls.target.set(0.0, 1.0, 0.0);
+controls.update();
 
-function intersects(l1p1, l1p2, l2p1, l2p2){
-    let a = l1p1[0], b = l1p1[1];
-    let c = l1p2[0], d = l1p2[1];
-    let p = l2p1[0], q = l2p1[1];
-    let r = l2p2[0], s = l2p2[1];
-    let det = (c - a) * (s - q) - (r - p) * (d - b);
-    if (det === 0) {
-        return false;
-    } else {
-        let lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-        let gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-        return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
-    }
-}
+const scene = new THREE.Scene();
 
-let arr = [];
-while(arr.length < count){
-    arr.push([randomFloat(width), randomFloat(height),
-        0, 0, randomFloat(width), randomFloat(height),
-        randomFloat(zLimit)])
-}
+const light = new THREE.DirectionalLight(0xffffff);
+light.position.set(1.0, 1.0, 1.0).normalize();
+scene.add(light);
 
-function updateArr(arr){
-    let tarr = [];
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        let dx = a[4] - a[0];
-        let dy = a[5] - a[1];
-        if(Math.sqrt(dx * dx + dy * dy) < radius){
-            a[4] = randomFloat(width);
-            a[5] = randomFloat(height);
-        }else{
-            a[2] = (1 - aRatio) * a[2] + aRatio * Math.sign(dx) * Math.min(sMax, Math.abs(dx));
-            a[3] = (1 - aRatio) * a[3] + aRatio * Math.sign(dy) * Math.min(sMax, Math.abs(dy));
-            a[0] += a[2];
-            a[1] += a[3];
-        }
-        tarr.push(a);
-    }
-    return tarr;
-}
+let currentVrm = undefined;
+const loader = new THREE.GLTFLoader();
+loader.crossOrigin = 'anonymous';
 
-function getLinks(arr){
-    let links = [];
-    for(let i = 0; i < arr.length; i ++){
-        let p1 = arr[i];
-        for(let j = i + 1; j < arr.length; j ++){
-            let p2 = arr[j];
-            let d = dist(p1, p2);
-            if(d < limit){
-                links.push([i, j, d]);
+loader.load(
+    'https://pixiv.github.io/three-vrm/examples/models/three-vrm-girl.vrm',
+    (gltf) => {
+        THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+        THREE.VRM.from(gltf).then((vrm) => {
+            scene.add(vrm.scene);
+            currentVrm = vrm;
+            vrm.humanoid.getBoneNode(TVRMSHBN.Hips).rotation.y = Math.PI;
+            console.log(vrm);
+            printInfo(vrm);
+        });
+    },
+    (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
+    (error) => console.error(error)
+);
+
+const clock = new THREE.Clock();
+
+const infoList = [
+    TVRMSHBN.Head,
+    TVRMSHBN.Neck,
+    TVRMSHBN.Chest,
+    TVRMSHBN.Spine,
+    TVRMSHBN.Hips,
+    TVRMSHBN.LeftUpperArm,
+    TVRMSHBN.RightUpperArm,
+    TVRMSHBN.LeftLowerArm,
+    TVRMSHBN.RightLowerArm,
+    TVRMSHBN.LeftUpperLeg,
+    TVRMSHBN.RightUpperLeg,
+    TVRMSHBN.LeftLowerLeg,
+    TVRMSHBN.RightLowerLeg,
+    TVRMSHBN.LeftHand,
+    TVRMSHBN.RightHand,
+    TVRMSHBN.LeftFoot,
+    TVRMSHBN.RightFoot,
+    TVRMSHBN.LeftEye,
+    TVRMSHBN.RightEye
+];
+const info = document.getElementById('info');
+for(let i = 0; i < infoList.length; i ++){
+    let area = infoList[i];
+    let obj = document.createElement('div');
+    let name = document.createElement('text');
+    name.style.color = "#fff";
+    name.style.width = "100px";
+    name.style.display = "inline-block";
+    name.style.textAlign = "right";
+    name.innerHTML = area;
+    obj.appendChild(name);
+    for(let j = 0; j < 3; j ++){
+        let item = document.createElement('input');
+        let k = "xyz"[j];
+        item.id = area + "." + k;
+        item.style.textAlign = "right";
+        item.style.width = "30px";
+        item.value = "x";
+        item.onchange = function(){
+            if(currentVrm){
+                console.log(item.value);
+                let node = currentVrm.humanoid.getBoneNode(area);
+                let v = item.value / 180 * Math.PI;
+                if(isNaN(v)) v = 0;
+                while(v > 180) v -= 360;
+                while(v < -180) v += 360;
+                node.rotation[k] = v;
             }
-        }
+        };
+        obj.appendChild(item);
     }
-    links.sort(function(a, b) {
-        return a[2] - b[2];
-    });
-    return links;
+    info.appendChild(obj);
 }
 
-function getLines(links, arr){
-    let lines = [];
-    for(let i = 0; i < links.length; i ++){
-        let l2 = links[i];
-        let l2p1 = arr[l2[0]], l2p2 = arr[l2[1]];
-        let check = true;
-        for(let j = 0; j < lines.length; j ++){
-            let l1 = lines[j];
-            let l1p1 = arr[l1[0]], l1p2 = arr[l1[1]];
-            if(intersects(l1p1, l1p2, l2p1, l2p2)){
-                check = false;
-            }
+function printInfo(vrm){
+    for(let i = 0; i < infoList.length; i ++){
+        let area = infoList[i];
+        let node = vrm.humanoid.getBoneNode(area);
+        for(let j = 0; j < 3; j ++){
+            let k = "xyz"[j];
+            let item = document.getElementById(area + "." + k);
+            item.value = Math.floor(node.rotation[k] * 180 / Math.PI);
         }
-        if(check){
-            lines.push(l2);
-        }
-    }
-    lines.sort(function(a, b) {
-        return a[0] - b[0];
-    });
-    return lines;
-}
-
-function getTriangles(lines, arr){
-    let triangles = [];
-    for(let i = 0; i < arr.length; i ++){
-        let t = [];
-        for(let j = 0; j < lines.length; j ++){
-            let l2 = lines[j];
-            let l2i1 = l2[0], l2i2 = l2[1];
-            if(l2i1 == i){
-                t.push(l2i2);
-            }
-            if(t.includes(l2i1) && t.includes(l2i2)){
-                triangles.push([i, l2i1, l2i2]);
-            }
-        }
-    }
-    return triangles;
-}
-
-function xyz2(x, y, z){
-    let dx = x - cx;
-    let dz = z - cz;
-    let nx = cx + dx * ((y + width / 2) * xRatio);
-    let ny = cy + dz * ((y + width / 2) * yRatio);
-    return [nx, ny];
-}
-
-function drawTriangles(triangles, arr){
-    for(let i = 0; i < triangles.length; i ++){
-        let t = triangles[i];
-        let p1 = arr[t[0]];
-        let p2 = arr[t[1]];
-        let p3 = arr[t[2]];
-        ctx.fillStyle = "#fff2";
-        ctx.strokeStyle = "#ffff";
-        ctx.beginPath();
-        ctx.moveTo(...xyz2(p1[0], p1[1], p1[6]));
-        ctx.lineTo(...xyz2(p2[0], p2[1], p2[6]));
-        ctx.lineTo(...xyz2(p3[0], p3[1], p3[6]));
-        ctx.closePath();
-        ctx.stroke();
-        ctx.fill();
     }
 }
 
 function loop(time){
-    arr = updateArr(arr);
-    let links = getLinks(arr);
-    let lines = getLines(links, arr);
-    let triangles = getTriangles(lines, arr);
-    ctx.clearRect(0, 0, width, height);
-    drawTriangles(triangles, arr);
+    if(currentVrm){
+        const deltaTime = clock.getDelta();
+        currentVrm.update(deltaTime);
+        renderer.render(scene, camera);
+    }
     setTimeout(function(){
         requestAnimationFrame(loop);
     }, step);
