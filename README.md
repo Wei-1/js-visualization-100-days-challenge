@@ -83,4 +83,5 @@ Some testing styles for other personal projects
 1. [Linked 3D Trangles](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-19.html)
 1. [VRM Pose](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-20.html)
 1. [VRM Look At](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-21.html)
-1. [Contour Map](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Contour Map](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-22.html)
+1. [3D Cubes Light Shadow](https://wei-1.github.io/js-visualization-100-days-challenge/)
