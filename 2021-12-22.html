@@ -1,0 +1,96 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const scaleSize = 4;
+const whr = width / height;
+const level = 10;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+const bg = document.createElement('canvas');
+bg.width  = width;
+bg.height = height;
+const bgx = bg.getContext('2d');
+const noise = document.createElement("canvas");
+noise.width  = width;
+noise.height = height;
+const b = noise.getContext('2d');
+let imageData = b.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+let i = 0;
+while(i < pixels.length){
+    let c = randomInt(256);
+    pixels[i++] = c;
+    pixels[i++] = c;
+    pixels[i++] = c;
+    pixels[i++] = 255;
+}
+b.putImageData(imageData, 0, 0);
+
+function perlinNoise(){
+    for (let dw = scaleSize; dw < width / 4; dw *= 2) {
+        let dh = dw / whr;
+        let x = Math.random() * (width - dw);
+        let y = Math.random() * (height - dh);
+        bgx.globalAlpha = scaleSize / dw;
+        bgx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+    }
+}
+perlinNoise();
+
+function drawBG(){
+    let bgImageData = bgx.getImageData(0, 0, width, height);
+    let bgPixels = bgImageData.data;
+    let ctImageData = ctx.getImageData(0, 0, width, height);
+    let ctPixels = ctImageData.data;
+    for(let i = 0; i < width; i ++){
+        for(let j = 0; j < height; j ++){
+            let k = (j * width + i) * 4;
+            let c = Math.floor(bgPixels[k] / level);
+            let count = 0;
+            for(let ni = i-1; ni <= i+1; ni ++){
+                for(let nj = j-1; nj <= j+1; nj ++){
+                    let nk = (nj * width + ni) * 4;
+                    let nc = Math.floor(bgPixels[nk] / level);
+                    if(c != nc){
+                        count ++;
+                    }
+                }
+            }
+            if(count > 2){
+                ctPixels[k+0] = 0;
+                ctPixels[k+1] = 0;
+                ctPixels[k+2] = 0;
+                ctPixels[k+3] = 255;
+            }else{
+                ctPixels[k+0] = c * level;
+                ctPixels[k+1] = c * level;
+                ctPixels[k+2] = c * level;
+                ctPixels[k+3] = 255;
+            }
+        }
+    }
+    ctx.putImageData(ctImageData, 0, 0);
+}
+drawBG();
+
+    </script>
+</body>
+</html>

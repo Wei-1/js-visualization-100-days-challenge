@@ -1,0 +1,119 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <canvas id="light" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const light = document.getElementById('light');
+light.width  = width;
+light.height = height;
+const ltx = light.getContext('2d');
+
+const step = 50;
+const count = 50;
+const minR = 20;
+const maxR = 100;
+const size = 100;
+const limit = 1000;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random()*(max-min))+min;
+}
+
+function randomPattern(){
+    ctx.clearRect(0, 0, width, height);
+    for(let i = 0; i < count; i ++){
+        ctx.fillStyle = "hsl("+randomInt(360)+",100%,50%)";
+        ctx.beginPath();
+        ctx.arc(randomInt(width), randomInt(height),
+            randomInt(maxR, minR), 0, 2 * Math.PI);
+        ctx.fill();
+    }
+}
+
+function clickE(event){
+    if(state == 0){
+        requestAnimationFrame(loop);
+    }
+}
+
+let arr = [];
+for(let i = 0; i < width / size + 1; i ++){
+    let a = [];
+    for(let j = 0; j < height / size + 1; j ++){
+        a.push([randomInt(4), randomInt(100)]);
+    }
+    arr.push(a);
+}
+
+function drawArr(arr, r){
+    ltx.clearRect(0, 0, width, height);
+    for(let i = 0; i < width / size + 1; i ++){
+        let a = arr[i];
+        for(let j = 0; j < height / size + 1; j ++){
+            let dc = a[j];
+            let d = dc[0], c = dc[1], l = r * size;
+            let x = i * size, y = j * size;
+            ltx.fillStyle = "hsl(0,0%," + c + "%)";
+            if(d == 0){
+                ltx.fillRect(x, y, l, size);
+            }else if(d == 1){
+                ltx.fillRect(x, y, size, l);
+            }else if(d == 2){
+                ltx.fillRect(x + size - l, y, l, size);
+            }else if(d == 3){
+                ltx.fillRect(x, y + size - l, size, l);
+            }
+        }
+    }
+}
+
+randomPattern();
+let stime = 0;
+let state = 0;
+function loop(time){
+    if(state == 0){
+        stime = time;
+        state = 1;
+    }else if(state == 1){
+        if(time - stime > limit){
+            state = 2;
+            stime = time;
+            drawArr(arr, 1);
+            randomPattern();
+        }else{
+            drawArr(arr, (time - stime) / limit);
+        }
+    }else if(state == 2){
+        if(time - stime > limit){
+            state = 0;
+            stime = time;
+        }else{
+            drawArr(arr, 1 - (time - stime) / limit);
+        }
+    }
+    if(state > 0){
+        setTimeout(function(){
+            requestAnimationFrame(loop);
+        }, step);
+    }else{
+        ltx.clearRect(0, 0, width, height);
+    }
+}
+
+    </script>
+</body>
+</html>

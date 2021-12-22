@@ -1,0 +1,91 @@
+<html>
+<body style="background-color:#abe;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const scaleSize = 4;
+const whr = width / height;
+const tRatio = 0.0005;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+const bg = document.createElement('canvas');
+bg.width  = width;
+bg.height = height;
+const bgx = bg.getContext('2d');
+const noise = document.createElement("canvas");
+noise.width  = width;
+noise.height = height;
+const b = noise.getContext('2d');
+let imageData = b.getImageData(0, 0, width, height);
+let pixels = imageData.data;
+let i = 0;
+while(i < pixels.length){
+    let c = randomInt(256);
+    pixels[i++] = c;
+    pixels[i++] = c;
+    pixels[i++] = c;
+    pixels[i++] = 255;
+}
+b.putImageData(imageData, 0, 0);
+
+function perlinNoise(){
+    for (let dw = scaleSize; dw < width / 4; dw *= 2) {
+        let dh = dw / whr;
+        let x = Math.random() * (width - dw);
+        let y = Math.random() * (height - dh);
+        bgx.globalAlpha = scaleSize / dw;
+        bgx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+    }
+}
+perlinNoise();
+
+function drawBG(time){
+    let cRatio = Math.sin(time * tRatio) / 2 + 0.5;
+    document.body.style.backgroundColor = "hsl(204, 70%, " + 63 * cRatio + "%)";
+    cRatio = Math.max(cRatio, 0.3);
+    let bgImageData = bgx.getImageData(0, 0, width, height);
+    let bgPixels = bgImageData.data;
+    for(let i = 0; i < width; i ++){
+        for(let j = 0; j < height; j ++){
+            let k = (j * width + i) * 4;
+            let c = bgPixels[k+0];
+            bgPixels[k+0] = 255;
+            bgPixels[k+1] = 255;
+            bgPixels[k+2] = 255;
+            if(c > 200) bgPixels[k+3] = 255 * cRatio;
+            else if(c > 100) bgPixels[k+3] = (c - 100) / 100 * 255 * cRatio;
+            else bgPixels[k+3] = 0;
+        }
+    }
+    ctx.putImageData(bgImageData, 0, 0);
+}
+
+function loop(time){
+    ctx.clearRect(0, 0, width, height);
+    drawBG(time);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>

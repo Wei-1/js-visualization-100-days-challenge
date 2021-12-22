@@ -1,0 +1,77 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const w = 10;
+const h = 30;
+const tRatio = 0.02;
+const rRatio = 2;
+const speed = 10;
+
+function randomFloat(max, min = 0){
+    return Math.random() * (max - min) + min;
+}
+
+let arr = [];
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[1] += speed;
+        if(a[1] < height * 2){
+            tarr.push(a);
+        }
+    }
+    for(let i = 0; i < rRatio; i ++){
+        tarr.push([randomFloat(width), 0, randomFloat(Math.PI * 2), randomFloat(360)]);
+    }
+    return tarr;
+}
+
+function drawArr(arr, time){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        let x = a[0], y = a[1], r = a[2], c = a[3];
+        let dx = h / 2 * Math.sin(r);
+        let dy = h / 2 * Math.cos(r);
+        let l = Math.sin(r + time * tRatio);
+        if(l > 0){
+            let g = l * 50 + 50;
+            ctx.lineWidth = w * l;
+            ctx.strokeStyle = "hsl("+c+",100%,"+g+"%)";
+            ctx.beginPath();
+            ctx.moveTo(x + dx, y + dy);
+            ctx.lineTo(x - dx, y - dy);
+            ctx.stroke();
+        }
+    }
+}
+
+function loop(time){
+    arr = updateArr(arr);
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr, time);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>

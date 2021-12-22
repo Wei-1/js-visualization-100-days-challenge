@@ -1,0 +1,138 @@
+<html>
+<body style="background-color:#fff;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const count = 30;
+const circle = 50;
+const limit = 300;
+const aRatio = 0.1;
+const sMax = 3;
+const radius = 10;
+
+function randomFloat(max, min = 0){
+    return Math.random()*(max-min)+min;
+}
+
+function dist(p1, p2){
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+function intersects(l1p1, l1p2, l2p1, l2p2){
+    let a = l1p1[0], b = l1p1[1];
+    let c = l1p2[0], d = l1p2[1];
+    let p = l2p1[0], q = l2p1[1];
+    let r = l2p2[0], s = l2p2[1];
+    let det = (c - a) * (s - q) - (r - p) * (d - b);
+    if (det === 0) {
+        return false;
+    } else {
+        let lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+        let gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+        return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+    }
+}
+
+let arr = [];
+while(arr.length < count){
+    arr.push([randomFloat(width), randomFloat(height),
+        0, 0, randomFloat(width), randomFloat(height)])
+}
+
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        let dx = a[4] - a[0];
+        let dy = a[5] - a[1];
+        if(Math.sqrt(dx * dx + dy * dy) < radius){
+            a[4] = randomFloat(width);
+            a[5] = randomFloat(height);
+        }else{
+            a[2] = (1 - aRatio) * a[2] + aRatio * Math.sign(dx) * Math.min(sMax, Math.abs(dx));
+            a[3] = (1 - aRatio) * a[3] + aRatio * Math.sign(dy) * Math.min(sMax, Math.abs(dy));
+            a[0] += a[2];
+            a[1] += a[3];
+        }
+        tarr.push(a);
+    }
+    return tarr;
+}
+
+function getLinks(arr){
+    let links = [];
+    for(let i = 0; i < arr.length; i ++){
+        let p1 = arr[i];
+        for(let j = i + 1; j < arr.length; j ++){
+            let p2 = arr[j];
+            let d = dist(p1, p2);
+            if(d < limit){
+                links.push([i, j, d]);
+            }
+        }
+    }
+    links.sort(function(a, b) {
+        return a[2] - b[2];
+    });
+    return links;
+}
+
+function getLines(links, arr){
+    let lines = [];
+    for(let i = 0; i < links.length; i ++){
+        let l = links[i];
+        let l2p1 = arr[l[0]], l2p2 = arr[l[1]];
+        let check = true;
+        for(let j = 0; j < lines.length; j ++){
+            let l1 = lines[j];
+            let l1p1 = l1[0], l1p2 = l1[1];
+            if(intersects(l1p1, l1p2, l2p1, l2p2)){
+                check = false;
+            }
+        }
+        if(check){
+            lines.push([l2p1, l2p2]);
+        }
+    }
+    return lines;
+}
+
+function drawLines(lines){
+    for(let i = 0; i < lines.length; i ++){
+        let l = lines[i];
+        ctx.beginPath();
+        ctx.moveTo(...l[0]);
+        ctx.lineTo(...l[1]);
+        ctx.stroke();
+    }
+}
+
+function loop(time){
+    arr = updateArr(arr);
+    let links = getLinks(arr);
+    let lines = getLines(links, arr);
+    ctx.clearRect(0, 0, width, height);
+    drawLines(lines);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
