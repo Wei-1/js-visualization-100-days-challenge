@@ -1,9 +1,6 @@
 <html>
-<body style="background-color:#000;">
+<body style="background-color:#ddd;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
-    <div id="framerate" style="position:absolute;color:#fff;z-index:1;"></div>
-    <script src="https://pixijs.io/particle-emitter/examples/libs/pixi.js/dist/browser/pixi.js"></script>
-    <script src="https://pixijs.io/particle-emitter/dist/particle-emitter.js"></script>
     <script>
 
 let width = window.innerWidth
@@ -17,139 +14,122 @@ let height = window.innerHeight
 const canvas = document.getElementById('canvas');
 canvas.width = width;
 canvas.height = height;
+const ctx = canvas.getContext('2d');
 
-const radius = 100;
-const tRatio = 0.003;
+let imageData = null;
+let pixels = null;
 
-const rendererOptions = {
-    width: width,
-    height: height,
-    view: canvas,
-};
-let stage = new PIXI.Container();
-let emitter = null;
-let renderer = new PIXI.Renderer(rendererOptions);
-let bg = new PIXI.Sprite(PIXI.Texture.WHITE);
-bg.scale.x = width;
-bg.scale.y = height;
-bg.tint = 0x000000;
-stage.addChild(bg);
-let emitterContainer = new PIXI.Container();
-stage.addChild(emitterContainer);
-let updateHook = null;
-let containerHook = null;
+const step = 20;
+const rMin = 30;
+const rMax = 50;
+const radius = 30;
+const rIncrease = 1;
+const count = 3;
+const speed = 1;
+const limit = Math.floor(5 / 2) + 1;
+const aMax = 3 * 1 / rMin;
+const aIncrease = aMax / 5;
 
-const framerate = document.getElementById('framerate');
+function randomFloat(max, min = 0){
+    return Math.random()*(max-min)+min;
+}
 
-let config = {
-    "lifetime": {
-        "min": 4,
-        "max": 4
-    },
-    "frequency": 0.005,
-    "emitterLifetime": 0,
-    "maxParticles": 1000,
-    "addAtBack": false,
-    "pos": {
-        "x": 0,
-        "y": 0
-    },
-    "behaviors": [
-        {
-            "type": "alpha",
-            "config": {
-                "alpha": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": 1
-                        },
-                        {
-                            "time": 1,
-                            "value": 0.22
-                        }
-                    ]
+function dist(p1, p2){
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+function initPattern(){
+    let tarr = [];
+    ctx.clearRect(0, 0, width, height);
+    for(let i = 0; i < count; i ++){
+        let x = randomFloat(width - rMax*2, rMax*2);
+        let y = randomFloat(height - rMax*2, rMax*2);
+        let r = randomFloat(rMax, rMin);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        let a = randomFloat(Math.PI * 2);
+        let da = Math.PI / 2;
+        let dx = (r + radius) * Math.sin(a);
+        let dy = (r + radius) * Math.cos(a);
+        tarr.push([x + dx, y + dy, a + da]);
+    }
+    return tarr;
+}
+
+function validate(x, y, r){
+    let check = x >= 0 && x < width && y >= 0 && y < height;
+    for(let i = 0; i < width; i ++){
+        for(let j = 0; j < height; j ++){
+            if(dist([i, j], [x, y]) < r){
+                let k = (j * width + i) * 4;
+                if(pixels[k+3] > 0){
+                    check = false;
                 }
-            }
-        },
-        {
-            "type": "moveSpeed",
-            "config": {
-                "speed": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": 200
-                        },
-                        {
-                            "time": 1,
-                            "value": 50
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "scale",
-            "config": {
-                "scale": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": 0.25
-                        },
-                        {
-                            "time": 1,
-                            "value": 0.75
-                        }
-                    ]
-                },
-                "minMult": 0.5
-            }
-        },
-        {
-            "type": "rotation",
-            "config": {
-                "accel": 0,
-                "minSpeed": 0,
-                "maxSpeed": 10,
-                "minStart": 0,
-                "maxStart": 360
-            }
-        },
-        {
-            "type": "textureRandom",
-            "config": {
-                "textures": [
-                    "https://pixijs.io/particle-emitter/examples/images/Bubbles99.png"
-                ]
             }
         }
-    ]
-};
-
-window.emitter = emitter = new PIXI.particles.Emitter(
-    emitterContainer,
-    config
-);
-console.log(emitter);
-
-let elapsed = Date.now();
-
-let cx = width / 2;
-let cy = height / 2;
-function loop(time){
-    let now = Date.now();
-    if(emitter){
-        emitter.update((now - elapsed) * 0.001);
-        let x = cx + radius * Math.sin(time * tRatio);
-        let y = cy + radius * Math.cos(time * tRatio);
-        emitter.updateOwnerPos(x, y);
     }
-    framerate.innerHTML = `${Math.floor(1000 / (now - elapsed)).toFixed(2)} fps`;
-    elapsed = now;
-    renderer.render(stage);
-    requestAnimationFrame(loop);
+    return check;
+}
+
+function updateA(a){
+    let ang = a[2];
+    for(let i = aMax; i > -aMax; i -= aIncrease){
+        let x = a[0] + (speed + radius) * Math.sin(ang + i);
+        let y = a[1] + (speed + radius) * Math.cos(ang + i);
+        if(validate(x, y, radius)){
+            ang += i;
+            break;
+        }
+    }
+    a[0] += speed * Math.sin(ang);
+    a[1] += speed * Math.cos(ang);
+    a[2] = ang;
+    return a;
+}
+
+function updateArr(arr){
+    imageData = ctx.getImageData(0, 0, width, height);
+    pixels = imageData.data;
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        if(a[0] >= 0 && a[0] < width && a[1] >= 0 && a[1] < height){
+            tarr.push(updateA(a));
+        }
+    }
+    return tarr;
+}
+
+function drawPoint(x, y){
+    ctx.fillRect(x, y, 1, 1);
+}
+
+function drawArr(arr){
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        for(let j = 0; j < limit; j ++){
+            let dl = radius * j / limit;
+            let da = a[2] + Math.PI / 2;
+            let dx = dl * Math.sin(da);
+            let dy = dl * Math.cos(da);
+            drawPoint(a[0] + dx, a[1] + dy);
+            drawPoint(a[0] - dx, a[1] - dy);
+        }
+    }
+}
+
+let arr = [];
+function loop(time){
+    if(arr.length == 0){
+        arr = initPattern();
+    }else{
+        arr = updateArr(arr);
+    }
+    drawArr(arr);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
 }
 requestAnimationFrame(loop);
 

@@ -1,0 +1,158 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <div id="framerate" style="position:absolute;color:#fff;z-index:1;"></div>
+    <script src="https://pixijs.io/particle-emitter/examples/libs/pixi.js/dist/browser/pixi.js"></script>
+    <script src="https://pixijs.io/particle-emitter/dist/particle-emitter.js"></script>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width = width;
+canvas.height = height;
+
+const radius = 100;
+const tRatio = 0.003;
+
+const rendererOptions = {
+    width: width,
+    height: height,
+    view: canvas,
+};
+let stage = new PIXI.Container();
+let emitter = null;
+let renderer = new PIXI.Renderer(rendererOptions);
+let bg = new PIXI.Sprite(PIXI.Texture.WHITE);
+bg.scale.x = width;
+bg.scale.y = height;
+bg.tint = 0x000000;
+stage.addChild(bg);
+let emitterContainer = new PIXI.Container();
+stage.addChild(emitterContainer);
+let updateHook = null;
+let containerHook = null;
+
+const framerate = document.getElementById('framerate');
+
+let config = {
+    "lifetime": {
+        "min": 4,
+        "max": 4
+    },
+    "frequency": 0.005,
+    "emitterLifetime": 0,
+    "maxParticles": 1000,
+    "addAtBack": false,
+    "pos": {
+        "x": 0,
+        "y": 0
+    },
+    "behaviors": [
+        {
+            "type": "alpha",
+            "config": {
+                "alpha": {
+                    "list": [
+                        {
+                            "time": 0,
+                            "value": 1
+                        },
+                        {
+                            "time": 1,
+                            "value": 0.22
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "moveSpeed",
+            "config": {
+                "speed": {
+                    "list": [
+                        {
+                            "time": 0,
+                            "value": 200
+                        },
+                        {
+                            "time": 1,
+                            "value": 50
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "scale",
+            "config": {
+                "scale": {
+                    "list": [
+                        {
+                            "time": 0,
+                            "value": 0.25
+                        },
+                        {
+                            "time": 1,
+                            "value": 0.75
+                        }
+                    ]
+                },
+                "minMult": 0.5
+            }
+        },
+        {
+            "type": "rotation",
+            "config": {
+                "accel": 0,
+                "minSpeed": 0,
+                "maxSpeed": 10,
+                "minStart": 0,
+                "maxStart": 360
+            }
+        },
+        {
+            "type": "textureRandom",
+            "config": {
+                "textures": [
+                    "https://pixijs.io/particle-emitter/examples/images/Bubbles99.png"
+                ]
+            }
+        }
+    ]
+};
+
+window.emitter = emitter = new PIXI.particles.Emitter(
+    emitterContainer,
+    config
+);
+console.log(emitter);
+
+let elapsed = Date.now();
+
+let cx = width / 2;
+let cy = height / 2;
+function loop(time){
+    let now = Date.now();
+    if(emitter){
+        emitter.update((now - elapsed) * 0.001);
+        let x = cx + radius * Math.sin(time * tRatio);
+        let y = cy + radius * Math.cos(time * tRatio);
+        emitter.updateOwnerPos(x, y);
+    }
+    framerate.innerHTML = `${Math.floor(1000 / (now - elapsed)).toFixed(2)} fps`;
+    elapsed = now;
+    renderer.render(stage);
+    requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>

@@ -85,4 +85,5 @@ Some testing styles for other personal projects
 1. [VRM Look At](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-21.html)
 1. [Contour Map](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-22.html)
 1. [3D Cubes Light Shadow (GPU)](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-23.html)
-1. [Particles (GPU)](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Particles (GPU)](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-24.html)
+1. [Zen Garden](https://wei-1.github.io/js-visualization-100-days-challenge/)
