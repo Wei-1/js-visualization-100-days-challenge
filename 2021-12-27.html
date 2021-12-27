@@ -15,7 +15,6 @@ let height = window.innerHeight
 || document.body.clientHeight;
 
 // Multi Choice, Checkbox - Text
-// Page, Optional, Submit
 // Multi Choice, Checkbox - Multi-Media
 // Rating Scale, Matrix Questions,
 // Drop-Down, Open Ended,
@@ -35,7 +34,6 @@ const QuestionFormat = {
     "name": "String",
     "id": "String",
     "type": "String",
-    "must": "Boolean",
     "page": "Int",
     "data": "Object"
 }
@@ -67,8 +65,6 @@ function getTestSurvey(){
         "name": "Test Multi Choice Question",
         "id": "T-0-Q-0",
         "type": "multi",
-        "text": "Q-0 Description",
-        "must": true,
         "page": 1,
         "data": {
             "selection": [{
@@ -94,8 +90,6 @@ function getTestSurvey(){
         "name": "Test Checkbox Question",
         "id": "T-0-Q-1",
         "type": "checkbox",
-        "text": "Q-1 Description",
-        "must": false,
         "page": 2,
         "data": {
             "selection": [{
@@ -136,19 +130,10 @@ function getReport4Survey(survey){
     for(let i = 0; i < questions.length; i ++){
         report['data'].push({
             "id": questions[i]['id'],
-            "data": null
+            "data": {}
         })
     }
     return report;
-}
-
-function getPages(survey){
-    let questions = survey['data'];
-    let pages = [];
-    for(let i = 0; i < questions.length; i ++){
-        pages.push(questions[i]['page']);
-    }
-    return [...new Set(pages)];
 }
 
 function findAnswer(report, id){
@@ -225,17 +210,10 @@ function drawQuesCheckbox(qelem, question, report){
 function drawQuesRating(qelem, question, report){
 }
 
-const qgeneral = [["name", "h2"], ["text", "p"]];
+const qgeneral = [["name", "h2"]];
 function drawQuestion(selem, question, report){
     let qelem = document.createElement("form");
-    qelem.className = "w3-container w3-card w3-hide";
-    qelem.id = question['id'];
-    if(question['must']){
-        let qtmp = document.createElement('p');
-        qtmp.style.color = "red";
-        qtmp.innerHTML = "* Mandatory Question";
-        qelem.appendChild(qtmp);
-    }
+    qelem.className = "w3-container w3-card";
     for(let i = 0; i < qgeneral.length; i ++){
         let qg = qgeneral[i];
         let qtmp = document.createElement(qg[1]);
@@ -259,50 +237,10 @@ function drawQuestion(selem, question, report){
     selem.appendChild(qelem);
 }
 
-function validatePage(survey, report){
-    let questions = survey['data'];
-    let qlist = [];
-    for(let i = 0; i < questions.length; i ++){
-        let q = questions[i];
-        let a = findAnswer(report, q['id']);
-        if(q['page'] == CURRENTPAGE && q['must'] && !a['data']){
-            qlist.push(q);
-        }
-    }
-    if(qlist.length > 0){
-        console.log(qlist);
-        return false;
-    }else{
-        return true;
-    }
-}
-
-function drawPage(selem, survey, report){
-    let pages = getPages(survey);
-    let pobj = document.createElement("div");
-    pobj.className = "w3-container w3-bar w3-margin";
-    for(let i = 0; i < pages.length; i ++){
-        let pid = pages[i];
-        let ptmp = document.createElement("a");
-        ptmp.className = "w3-button";
-        ptmp.id = "selem-pages-" + pid;
-        ptmp.onclick = function(){
-            if(validatePage(survey, report)){
-                CURRENTPAGE = pid;
-                showPage(survey, pid);
-            }
-        }
-        ptmp.innerHTML =  pid;
-        pobj.appendChild(ptmp);
-    }
-    selem.appendChild(pobj);
-}
-
 const sgeneral = [["id", "label"], ["name", "h1"], ["text", "p"]];
 function drawSurvey(survey, report){
     let selem = document.getElementById('survey');
     selem.innerHTML = "";
-    selem.id = survey['id'];
     let questions = survey['data'];
     for(let i = 0; i < sgeneral.length; i ++){
         let qg = sgeneral[i];
@@ -313,38 +251,11 @@ function drawSurvey(survey, report){
     for(let i = 0; i < questions.length; i ++){
         drawQuestion(selem, questions[i], report);
     }
-    drawPage(selem, survey, report);
-}
-
-function showPage(survey, page){
-    let questions = survey['data'];
-    for(let i = 0; i < questions.length; i ++){
-        let q = questions[i];
-        let qelem = document.getElementById(q['id']);
-        if(q['page'] == page){
-            qelem.className = "w3-container w3-card";
-        }else{
-            qelem.className = "w3-container w3-card w3-hide";
-        }
-    }
-    let pages = getPages(survey);
-    for(let i = 0; i < pages.length; i ++){
-        let pid = pages[i];
-        let ptmp = document.getElementById("selem-pages-" + pid);
-        if(pid == page){
-            ptmp.className = "w3-button w3-gray";
-        }else{
-            ptmp.className = "w3-button";
-        }
-    }
 }
 
 let survey = getTestSurvey();
 let report = getReport4Survey(survey);
 drawSurvey(survey, report);
-
-let CURRENTPAGE = getPages(survey)[0];
-showPage(survey, CURRENTPAGE);
 
     </script>
 </body>
