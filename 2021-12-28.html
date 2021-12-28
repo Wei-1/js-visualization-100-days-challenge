@@ -68,7 +68,7 @@ function getTestSurvey(){
         "id": "T-0-Q-0",
         "type": "multi",
         "text": "Q-0 Description",
-        "must": false,
+        "must": true,
         "page": 1,
         "data": {
             "selection": [{
@@ -96,7 +96,7 @@ function getTestSurvey(){
         "type": "checkbox",
         "text": "Q-1 Description",
         "must": false,
-        "page": 1,
+        "page": 2,
         "data": {
             "selection": [{
                 "id": "0",
@@ -114,53 +114,6 @@ function getTestSurvey(){
                 "text": "Test Option Video",
                 "video": "Test Option Video"
             }]
-        }
-    });
-    // rating
-    questions.push({
-        "name": "Test Rating Question",
-        "id": "T-0-Q-2",
-        "type": "rating",
-        "text": "Q-2 Description",
-        "must": true,
-        "page": 2,
-        "data": {
-            "scale": 10,
-            "left": "Bad",
-            "right": "Good"
-        }
-    });
-    // matrix
-    questions.push({
-        "name": "Test Matrix Question",
-        "id": "T-0-Q-3",
-        "type": "matrix",
-        "text": "Q-3 Description",
-        "must": true,
-        "page": 2,
-        "data": {
-            "selection": [{
-                "id": "0",
-                "text": "Pretty Bad"
-            }, {
-                "id": "1",
-                "text": "Bad"
-            }, {
-                "id": "2",
-                "text": "Neither Good nor Bad"
-            }, {
-                "id": "3",
-                "text": "Good"
-            }, {
-                "id": "4",
-                "text": "Very Good"
-            }],
-            "item": [
-                "Is this survey good?",
-                "Are you happy?",
-                "Am I cool?",
-                "Why are you here?"
-            ]
         }
     });
     return {
@@ -270,101 +223,6 @@ function drawQuesCheckbox(qelem, question, report){
 }
 
 function drawQuesRating(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    function setAnswer(v){
-        let qalist = qelem.children;
-        for(let i = 0; i < qalist.length; i ++){
-            if(qalist[i].type == "rating"){
-                if(qalist[i].innerHTML == v.toString()){
-                    qalist[i].className = "w3-button w3-blue w3-border";
-                }else{
-                    qalist[i].className = "w3-button w3-border";
-                }
-            }
-        }
-        answer['data'] = v;
-        console.log(answer);
-    }
-    let tmp0 = document.createElement("text");
-    tmp0.innerHTML = " " + data['left'] + " ";
-    tmp0.className = "w3-large";
-    qelem.appendChild(tmp0);
-    for(let i = 1; i <= data['scale']; i ++){
-        let tmp1 = document.createElement("a");
-        tmp1.className = "w3-button w3-border";
-        tmp1.setAttribute('type', 'rating');
-        tmp1.onclick = function(){
-            setAnswer(i);
-        }
-        tmp1.innerHTML = i;
-        qelem.appendChild(tmp1);
-    }
-    let tmp2 = document.createElement("text");
-    tmp2.innerHTML = " " + data['right'] + " ";
-    tmp2.className = "w3-large";
-    qelem.appendChild(tmp2);
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawQuesMatrix(qelem, question, report){
-    let data = question['data'];
-    let options = data['selection'];
-    let items = data['item'];
-    let answer = findAnswer(report, question['id']);
-    if(!answer['data']){
-        answer['data'] = {};
-    }
-    let table = document.createElement("table");
-    table.className = "w3-table-all w3-centered";
-    let tmp = document.createElement("tr");
-    tmp.id = question['id'] + "-header";
-    let tmp0 = document.createElement("th");
-    tmp0.className = "w3-left";
-    tmp0.innerHTML = "Questions:";
-    tmp.appendChild(tmp0);
-    for(let i = 0; i < options.length; i ++){
-        let tmp1 = document.createElement("th");
-        tmp1.innerHTML = options[i]['text'];
-        tmp.appendChild(tmp1);
-    }
-    table.appendChild(tmp);
-    for(let i = 0; i < items.length; i ++){
-        let item = items[i];
-        let itemid = question['id'] + "-" + i;
-        let tmp = document.createElement("tr");
-        tmp.id = itemid;
-        function setAnswer(){
-            let qalist = tmp.children;
-            for(let j = 0; j < qalist.length; j ++){
-                let tbtm = qalist[j].children[0];
-                if(tbtm && tbtm.type == "radio" && tbtm.checked){
-                    answer['data'][i] = tbtm.value;
-                }
-            }
-            console.log(answer);
-        }
-        let tmp1 = document.createElement("td");
-        tmp1.className = "w3-left";
-        tmp1.innerHTML = item;
-        tmp.appendChild(tmp1);
-        for(let j = 0; j < options.length; j ++){
-            let tmp1 = document.createElement("td");
-            let tmp2 = document.createElement("input");
-            tmp2.className = "w3-radio";
-            tmp2.setAttribute('type', 'radio');
-            tmp2.setAttribute('name', question['id'] + "-" + i);
-            tmp2.setAttribute('value', options[j]['id']);
-            tmp2.onclick = setAnswer;
-            tmp1.appendChild(tmp2);
-            tmp.appendChild(tmp1);
-        }
-        table.appendChild(tmp);
-    }
-    qelem.appendChild(table);
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
 }
 
 const qgeneral = [["name", "h2"], ["text", "p"]];
@@ -394,9 +252,6 @@ function drawQuestion(selem, question, report){
         case 'rating':
             drawQuesRating(qelem, question, report);
             break;
-        case 'matrix':
-            drawQuesMatrix(qelem, question, report);
-            break;
         default:
             console.log("Unexpected Question Type");
             console.log(question);
@@ -410,16 +265,8 @@ function validatePage(survey, report){
     for(let i = 0; i < questions.length; i ++){
         let q = questions[i];
         let a = findAnswer(report, q['id']);
-        if(q['page'] == CURRENTPAGE && q['must']){
-            if(!a['data']){
-                qlist.push(q);
-            }else if(q['type'] == 'matrix'){
-                for(let j = 0; j < q['data']['item'].length; j ++){
-                    if(!a['data'][j]){
-                        qlist.push(q);
-                    }
-                }
-            }
+        if(q['page'] == CURRENTPAGE && q['must'] && !a['data']){
+            qlist.push(q);
         }
     }
     if(qlist.length > 0){
