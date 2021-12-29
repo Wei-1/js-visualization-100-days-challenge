@@ -90,4 +90,5 @@ Some testing styles for other personal projects
 1. [Space Hyper Speed (GPU + CPU)](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-26.html)
 1. [Survey - Multi, Checkbox](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-27.html)
 1. [Survey - Pages, Optional](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-28.html)
-1. [Survey - Rating, Matrix](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Survey - Rating, Matrix](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-29.html)
+1. [Survey - Drop-Down, Open-Ended, Message](https://wei-1.github.io/js-visualization-100-days-challenge/)

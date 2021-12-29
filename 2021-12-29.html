@@ -18,7 +18,7 @@ let height = window.innerHeight
 // Page, Optional, Submit
 // Multi Choice, Checkbox - Multi-Media
 // Rating Scale, Matrix Questions,
-// Drop-Down, Open Ended, Message
+// Drop-Down, Open Ended,
 // Ranking, Click-Map, Slider,
 // Upload File, Take Picture,
 // Record Audio, Record Video
@@ -124,7 +124,7 @@ function getTestSurvey(){
         "id": "T-0-Q-2",
         "type": "rating",
         "text": "Q-2 Description",
-        "must": false,
+        "must": true,
         "page": 2,
         "data": {
             "scale": 10,
@@ -164,47 +164,6 @@ function getTestSurvey(){
                 "Why are you here?"
             ]
         }
-    });
-    // dropdown
-    questions.push({
-        "name": "Test Drop-Down Question",
-        "id": "T-0-Q-4",
-        "type": "dropdown",
-        "text": "Q-4 Description",
-        "must": false,
-        "page": 3,
-        "data": {
-            "text": "Select your feedback!",
-            "selection": [
-                "Pretty Bad",
-                "Bad",
-                "Neither Good nor Bad",
-                "Good",
-                "Very Good"
-            ]
-        }
-    });
-    // open
-    questions.push({
-        "name": "Test Open Question",
-        "id": "T-0-Q-5",
-        "type": "open",
-        "text": "Q-5 Description",
-        "must": false,
-        "page": 3,
-        "data": {
-            "text": "Write your feedback!"
-        }
-    });
-    // message
-    questions.push({
-        "name": "Test Message",
-        "id": "T-0-Q-6",
-        "type": "message",
-        "text": "Q-6 Description",
-        "must": false,
-        "page": 3,
-        "data": {}
     });
     return {
         "name": "Test Survey",
@@ -412,59 +371,6 @@ function drawQuesMatrix(qelem, question, report){
     qelem.appendChild(tmp3);
 }
 
-function drawQuesDropdown(qelem, question, report){
-    let data = question['data'];
-    let options = data['selection'];
-    let answer = findAnswer(report, question['id']);
-    let tmp = document.createElement("div");
-    tmp.className = "w3-dropdown-hover";
-    qelem.appendChild(tmp);
-    let tmp0 = document.createElement("button");
-    tmp0.className = "w3-button w3-border";
-    tmp0.innerHTML = "▼ " + data['text'];
-    tmp.appendChild(tmp0);
-    let tmp1 = document.createElement("div");
-    tmp1.className = "w3-dropdown-content w3-bar-block w3-border";
-    tmp.appendChild(tmp1);
-    for(let i = 0; i < options.length; i ++){
-        function setAnswer(){
-            tmp0.innerHTML = "▼ " + options[i];
-            answer['data'] = i;
-            console.log(answer);
-        }
-        let tmp2 = document.createElement("a");
-        tmp2.className = "w3-bar-item w3-button";
-        tmp2.setAttribute('value', i);
-        tmp2.innerHTML = " " + options[i];
-        tmp2.onclick = setAnswer;
-        tmp1.appendChild(tmp2);
-    }
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawQuesOpen(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("textarea");
-    tmp0.className = "w3-large";
-    tmp0.setAttribute("placeholder", data['text']);
-    tmp0.setAttribute("rows", 4);
-    tmp0.style.width = "100%";
-    tmp0.oninput = function(){
-        answer['data'] = tmp0.value;
-        console.log(answer);
-    }
-    qelem.appendChild(tmp0);
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawMessage(qelem, question, report){
-    let answer = findAnswer(report, question['id']);
-    answer['data'] = "message";
-}
-
 const qgeneral = [["name", "h2"], ["text", "p"]];
 function drawQuestion(selem, question, report){
     let qelem = document.createElement("form");
@@ -494,15 +400,6 @@ function drawQuestion(selem, question, report){
             break;
         case 'matrix':
             drawQuesMatrix(qelem, question, report);
-            break;
-        case 'dropdown':
-            drawQuesDropdown(qelem, question, report);
-            break;
-        case 'open':
-            drawQuesOpen(qelem, question, report);
-            break;
-        case 'message':
-            drawMessage(qelem, question, report);
             break;
         default:
             console.log("Unexpected Question Type");
