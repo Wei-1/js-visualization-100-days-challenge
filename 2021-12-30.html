@@ -19,7 +19,7 @@ let height = window.innerHeight
 // Multi Choice, Checkbox - Multi-Media
 // Rating Scale, Matrix Questions,
 // Drop-Down, Open Ended, Message
-// Matching, Click-Map, Slider,
+// Ranking, Click-Map, Slider,
 // Upload File, Take Picture,
 // Record Audio, Record Video
 
@@ -60,24 +60,6 @@ const ReportFormat = {
 const AnswerFormat = {
     "id": "String", // question id
     "data": "Object"
-}
-
-function randomImageLink(){
-    let size = 360;
-    let shift = size / 6;
-    let canvas = document.createElement("canvas");
-    canvas.width  = size;
-    canvas.height = size;
-    let ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#000';
-    for(let i = 0; i < size; i += shift){
-        for(let j = 0; j < size; j += shift){
-            if(Math.floor(i * j * Math.random()) % 2 == 0){
-                ctx.fillRect(i, j, shift, shift);
-            }
-        }
-    }
-    return canvas.toDataURL();
 }
 
 function getTestSurvey(){
@@ -223,63 +205,6 @@ function getTestSurvey(){
         "must": false,
         "page": 3,
         "data": {}
-    });
-    // match
-    questions.push({
-        "name": "Test Match Question",
-        "id": "T-0-Q-7",
-        "type": "match",
-        "text": "Q-7 Description",
-        "must": false,
-        "page": 4,
-        "data": {
-            "selection": [{
-                "id": "0",
-                "text": "First"
-            }, {
-                "id": "1",
-                "text": "Second"
-            }, {
-                "id": "2",
-                "text": "Third"
-            }],
-            "item": [{
-                "id": "0",
-                "text": "First"
-            }, {
-                "id": "1",
-                "text": "Second"
-            }, {
-                "id": "2",
-                "text": "Third"
-            }]
-        }
-    });
-    // clickmap
-    questions.push({
-        "name": "Test Click-Map Question",
-        "id": "T-0-Q-8",
-        "type": "clickmap",
-        "text": "Q-8 Description",
-        "must": false,
-        "page": 4,
-        "data": {
-            "image": randomImageLink()
-        }
-    });
-    // slider
-    questions.push({
-        "name": "Test Slider Question",
-        "id": "T-0-Q-9",
-        "type": "slider",
-        "text": "Q-9 Description",
-        "must": true,
-        "page": 4,
-        "data": {
-            "default": 40,
-            "min": 0,
-            "max": 80
-        }
     });
     return {
         "name": "Test Survey",
@@ -540,157 +465,6 @@ function drawMessage(qelem, question, report){
     answer['data'] = "message";
 }
 
-function drawQuesMatch(qelem, question, report){
-    let data = question['data'];
-    let options = data['selection'];
-    let items = data['item'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("div");
-    tmp0.className = "w3-row";
-    qelem.appendChild(tmp0);
-    let tmp1 = document.createElement("div");
-    tmp1.className = "w3-container w3-third w3-border";
-    tmp1.ondrop = function(event){
-        let tmpI = event.dataTransfer.getData("Text");
-        tmp1.appendChild(document.getElementById(tmpI));
-        setAnswer();
-    }
-    tmp1.ondragover = function(event){
-        event.preventDefault();
-    }
-    tmp0.appendChild(tmp1);
-    let tmp2 = document.createElement("div");
-    tmp2.className = "w3-container w3-third";
-    tmp0.appendChild(tmp2);
-    let tmp3 = document.createElement("div");
-    tmp3.className = "w3-container w3-third";
-    tmp0.appendChild(tmp3);
-    function setAnswer(){
-        let optlist = tmp3.children;
-        answer['data'] = {};
-        for(let i = 0; i < optlist.length; i ++){
-            let tmpO1 = optlist[i];
-            if(tmpO1.children.length > 0){
-                let tmpO2 = tmpO1.children[0];
-                answer['data'][tmpO1.getAttribute("optid")] = tmpO2.getAttribute("itemid");
-            }
-        }
-        console.log(answer);
-    }
-    for(let i = 0; i < items.length; i ++){
-        let item = items[i];
-        let tmp = document.createElement("div");
-        tmp.className = "w3-border";
-        tmp.id = question['id'] + "-item-" + item['id'];
-        tmp.style.cursor = "grab";
-        tmp.style.height = "70px";
-        tmp.setAttribute("itemid", item['id']);
-        tmp.setAttribute("draggable", "true");
-        tmp.setAttribute("ondragstart", "drag(event)");
-        tmp.ondragstart = function(event){
-            event.dataTransfer.setData("Text", tmp.id);
-        }
-        tmp.innerHTML = item['text'];
-        tmp1.appendChild(tmp);
-    }
-    for(let i = 0; i < options.length; i ++){
-        let opt = options[i];
-        let ptmp = document.createElement("div");
-        ptmp.className = "w3-center";
-        ptmp.style.height = "70px";
-        ptmp.innerHTML = opt["text"];
-        tmp2.appendChild(ptmp);
-        let dtmp = document.createElement("div");
-        dtmp.className = "w3-border";
-        dtmp.id = question['id'] + "-option-" + opt['id'];
-        dtmp.style.height = "70px";
-        dtmp.setAttribute("optid", opt['id']);
-        dtmp.ondrop = function(event){
-            if(dtmp.children.length == 0){
-                let tmpI = event.dataTransfer.getData("Text");
-                dtmp.appendChild(document.getElementById(tmpI));
-                setAnswer();
-            }
-        }
-        dtmp.ondragover = function(event){
-            event.preventDefault();
-        }
-        tmp3.appendChild(dtmp);
-    }
-    tmp1.style.height = (items.length * 70) + "px";
-    let tmp4 = document.createElement("p");
-    qelem.appendChild(tmp4);
-}
-
-function drawQuesClickmap(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("img");
-    tmp0.src = data['image'];
-    let tmp1 = document.createElement("canvas");
-    tmp1.style.maxWidth  = "100%";
-    tmp1.style.cursor = "pointer";
-    let tctx = tmp1.getContext('2d');
-    tmp0.onload = function(){
-        tmp1.width = tmp0.width;
-        tmp1.height = tmp0.height;
-        tctx.drawImage(tmp0, 0, 0);
-    }
-    tmp1.onclick = function(event){
-        tctx.clearRect(0, 0, tmp1.width, tmp1.height);
-        tctx.drawImage(tmp0, 0, 0);
-        tctx.fillStyle = "#0f0";
-        let x = event.offsetX, y = event.offsetY;
-        tctx.beginPath();
-        tctx.arc(x, y, 5, 0, 2 * Math.PI);
-        tctx.fill();
-        answer['data'] = [x, y];
-        console.log(answer);
-    }
-    qelem.appendChild(tmp1);
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawQuesSlider(qelem, question, report){
-    let data = question['data'];
-    let valueScale = data['max'] - data['min'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("div");
-    tmp0.className = "w3-container";
-    let tmp00 = document.createElement("div");
-    tmp00.innerHTML = " " + data['min'] + " ";
-    tmp00.className = "w3-large w3-left";
-    tmp0.appendChild(tmp00);
-    let tmp01 = document.createElement("text");
-    tmp01.innerHTML = " " + data['max'] + " ";
-    tmp01.className = "w3-large w3-right";
-    tmp0.appendChild(tmp01);
-    qelem.appendChild(tmp0);
-    let tmp1 = document.createElement("div");
-    tmp1.className = "w3-gray";
-    tmp1.style.cursor = "pointer";
-    let tmp2 = document.createElement("div");
-    tmp2.className = "w3-container w3-blue w3-center w3-large";
-    tmp2.style.width = Math.round((data['default'] - data['min']) / valueScale * 100) + "%";
-    tmp2.innerHTML = data['default'];
-    answer['data'] = data['default'];
-    tmp1.onclick = function(event){
-        let barWidthP = Math.round(event.offsetX / tmp1.offsetWidth * 100);
-        if(barWidthP >= 0 && barWidthP <= 100){
-            tmp2.style.width = barWidthP + "%";
-            let barValue = Math.round(barWidthP / 100 * valueScale) + data['min'];
-            tmp2.innerHTML = barValue;
-            answer['data'] = barValue;
-            console.log(answer);
-        }
-    }
-    tmp1.appendChild(tmp2);
-    qelem.appendChild(tmp1);
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
 const qgeneral = [["name", "h2"], ["text", "p"]];
 function drawQuestion(selem, question, report){
     let qelem = document.createElement("form");
@@ -730,15 +504,6 @@ function drawQuestion(selem, question, report){
         case 'message':
             drawMessage(qelem, question, report);
             break;
-        case 'match':
-            drawQuesMatch(qelem, question, report);
-            break;
-        case 'clickmap':
-            drawQuesClickmap(qelem, question, report);
-            break;
-        case 'slider':
-            drawQuesSlider(qelem, question, report);
-            break;
         default:
             console.log("Unexpected Question Type");
             console.log(question);
@@ -758,14 +523,6 @@ function validatePage(survey, report){
             }else if(q['type'] == 'matrix'){
                 for(let j = 0; j < q['data']['item'].length; j ++){
                     if(!a['data'][j]){
-                        qlist.push(q);
-                    }
-                }
-            }else if(q['type'] == 'match'){
-                let options = q['data']['selection'];
-                for(let j = 0; j < options.length; j ++){
-                    let opt = options[j];
-                    if(!a['data'][opt['id']]){
                         qlist.push(q);
                     }
                 }
