@@ -96,4 +96,5 @@ Some testing styles for other personal projects
 1. [Survey - Upload-File, Take-Picture](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-01.html)
 1. [Survey - Audio, Video](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-02.html)
 1. [Survey - Multi-Media Player](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-03.html)
-1. [Dissolve](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Dissolve](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-04.html)
+1. [Spiral Move Up](https://wei-1.github.io/js-visualization-100-days-challenge/)

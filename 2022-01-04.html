@@ -1,0 +1,121 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const scaleSize = 4;
+const whr = width / height;
+const count = 200;
+const minR = 10;
+const maxR = 50;
+const speed = 2;
+
+function randomInt(max, min = 0){
+    return Math.floor(Math.random() * (max-min)) + min;
+}
+
+function randomPattern(){
+    ctx.clearRect(0, 0, width, height);
+    for(let i = 0; i < count; i ++){
+        ctx.fillStyle = "hsl("+randomInt(360)+",100%,50%)";
+        ctx.beginPath();
+        ctx.arc(randomInt(width), randomInt(height),
+            randomInt(maxR, minR), 0, 2 * Math.PI);
+        ctx.fill();
+    }
+}
+randomPattern();
+
+const perlin = document.createElement('canvas');
+perlin.width  = width;
+perlin.height = height;
+const ptx = perlin.getContext('2d');
+const noise = document.createElement("canvas");
+noise.width  = width;
+noise.height = height;
+const ntx = noise.getContext('2d');
+let nImageData = ntx.getImageData(0, 0, width, height);
+let nPixels = nImageData.data;
+let i = 0;
+while(i < nPixels.length){
+    let c = randomInt(256);
+    nPixels[i++] = c;
+    nPixels[i++] = c;
+    nPixels[i++] = c;
+    nPixels[i++] = 255;
+}
+ntx.putImageData(nImageData, 0, 0);
+
+function perlinNoise(){
+    for (let dw = scaleSize; dw < width; dw *= 2) {
+        let dh = dw / whr;
+        let x = Math.random() * (width - dw);
+        let y = Math.random() * (height - dh);
+        ptx.globalAlpha = scaleSize / dw;
+        ptx.drawImage(noise, x, y, dw, dh, 0, 0, width, height);
+    }
+}
+perlinNoise();
+
+function drawBG(dissolve){
+    let pImageData = ptx.getImageData(0, 0, width, height);
+    let pPixels = pImageData.data;
+    let cImageData = ctx.getImageData(0, 0, width, height);
+    let cPixels = cImageData.data;
+    for(let i = 0; i < width; i ++){
+        for(let j = 0; j < height; j ++){
+            let k = (j * width + i) * 4;
+            let p = pPixels[k+0];
+            let c = cPixels[k+3];
+            if(dissolve >= p){
+                if(c == 255){
+                    cPixels[k+0] = 255;
+                    cPixels[k+1] = 255;
+                    cPixels[k+2] = 255;
+                    cPixels[k+3] = 254;
+                }else if(c > 0){
+                    cPixels[k+3] = 0;
+                }
+            }
+        }
+    }
+    ctx.putImageData(cImageData, 0, 0);
+}
+
+let dissolve = 0;
+function clickE(event){
+    if(dissolve == 0){
+        function loop(time){
+            dissolve += speed;
+            drawBG(dissolve);
+            if(dissolve < 256){
+                setTimeout(function(){
+                    requestAnimationFrame(loop);
+                }, step);
+            }else{
+                perlinNoise();
+                randomPattern();
+                dissolve = 0;
+            }
+        }
+        requestAnimationFrame(loop);
+    }
+}
+
+    </script>
+</body>
+</html>
