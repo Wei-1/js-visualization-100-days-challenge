@@ -93,16 +93,19 @@ function getTestSurvey(){
         "data": {
             "selection": [{
                 "id": "0",
-                "text": "Test Option 1"
+                "text": "Test Option Text"
             }, {
                 "id": "1",
-                "text": "Test Option 2"
+                "text": "Test Option Image",
+                "image": "Test Option Image"
             }, {
                 "id": "2",
-                "text": "Test Option 3"
+                "text": "Test Option Audio",
+                "audio": "Test Option Audio"
             }, {
                 "id": "3",
-                "text": "Test Option 4"
+                "text": "Test Option Video",
+                "video": "Test Option Video"
             }]
         }
     });
@@ -117,16 +120,19 @@ function getTestSurvey(){
         "data": {
             "selection": [{
                 "id": "0",
-                "text": "Test Option 1"
+                "text": "Test Option Text"
             }, {
                 "id": "1",
-                "text": "Test Option 2"
+                "text": "Test Option Image",
+                "image": "Test Option Image"
             }, {
                 "id": "2",
-                "text": "Test Option 3"
+                "text": "Test Option Audio",
+                "audio": "Test Option Audio"
             }, {
                 "id": "3",
-                "text": "Test Option 4"
+                "text": "Test Option Video",
+                "video": "Test Option Video"
             }]
         }
     });
@@ -317,60 +323,6 @@ function getTestSurvey(){
         "page": 6,
         "data": {}
     });
-    // multi
-    questions.push({
-        "name": "Test Multi Choice Question - Multi-Media",
-        "id": "T-0-Q-14",
-        "type": "multi",
-        "text": "Q-14 Description",
-        "must": false,
-        "page": 7,
-        "data": {
-            "selection": [{
-                "id": "0",
-                "text": "Test Option Text"
-            }, {
-                "id": "1",
-                "text": "Test Option Image",
-                "image": randomImageLink()
-            }, {
-                "id": "2",
-                "text": "Test Option Audio",
-                "audio": "https://www.w3schools.com/html/horse.mp3"
-            }, {
-                "id": "3",
-                "text": "Test Option Video",
-                "video": "https://www.w3schools.com/html/mov_bbb.mp4"
-            }]
-        }
-    });
-    // checkbox
-    questions.push({
-        "name": "Test Checkbox Question - Multi-Media",
-        "id": "T-0-Q-15",
-        "type": "checkbox",
-        "text": "Q-15 Description",
-        "must": false,
-        "page": 7,
-        "data": {
-            "selection": [{
-                "id": "0",
-                "text": "Test Option Text"
-            }, {
-                "id": "1",
-                "text": "Test Option Image",
-                "image": randomImageLink()
-            }, {
-                "id": "2",
-                "text": "Test Option Audio",
-                "audio": "https://www.w3schools.com/html/horse.mp3"
-            }, {
-                "id": "3",
-                "text": "Test Option Video",
-                "video": "https://www.w3schools.com/html/mov_bbb.mp4"
-            }]
-        }
-    });
     return {
         "name": "Test Survey",
         "id": "T-0",
@@ -443,32 +395,6 @@ function drawQuesMulti(qelem, question, report){
         let tmp2 = document.createElement("label");
         tmp2.innerHTML = " " + options[i]["text"];
         qelem.appendChild(tmp2);
-        if(options[i]["image"]){
-            let tmp = document.createElement("img");
-            tmp.src = options[i]["image"];
-            tmp2.appendChild(tmp);
-        }
-        if(options[i]["audio"]){
-            let atmp = document.createElement("audio");
-            atmp.setAttribute("controls", "");
-            atmp.innerHTML = "Browser No Audio Support";
-            let stmp = document.createElement("source");
-            stmp.src = options[i]["audio"];
-            stmp.setAttribute("type", "audio/mpeg");
-            atmp.appendChild(stmp);
-            tmp2.appendChild(atmp);
-        }
-        if(options[i]["video"]){
-            let atmp = document.createElement("video");
-            atmp.setAttribute("width", "400");
-            atmp.setAttribute("controls", "");
-            atmp.innerHTML = "Browser No Video Support";
-            let stmp = document.createElement("source");
-            stmp.src = options[i]["video"];
-            stmp.setAttribute("type", "video/mp4");
-            atmp.appendChild(stmp);
-            tmp2.appendChild(atmp);
-        }
         let tmp3 = document.createElement("p");
         qelem.appendChild(tmp3);
     }
@@ -500,32 +426,6 @@ function drawQuesCheckbox(qelem, question, report){
         let tmp2 = document.createElement("label");
         tmp2.innerHTML = " " + options[i]["text"];
         qelem.appendChild(tmp2);
-        if(options[i]["image"]){
-            let tmp = document.createElement("img");
-            tmp.src = options[i]["image"];
-            tmp2.appendChild(tmp);
-        }
-        if(options[i]["audio"]){
-            let atmp = document.createElement("audio");
-            atmp.setAttribute("controls", "");
-            atmp.innerHTML = "Browser No Audio Support";
-            let stmp = document.createElement("source");
-            stmp.src = options[i]["audio"];
-            stmp.setAttribute("type", "audio/mpeg");
-            atmp.appendChild(stmp);
-            tmp2.appendChild(atmp);
-        }
-        if(options[i]["video"]){
-            let atmp = document.createElement("video");
-            atmp.setAttribute("width", "400");
-            atmp.setAttribute("controls", "");
-            atmp.innerHTML = "Browser No Video Support";
-            let stmp = document.createElement("source");
-            stmp.src = options[i]["video"];
-            stmp.setAttribute("type", "video/mp4");
-            atmp.appendChild(stmp);
-            tmp2.appendChild(atmp);
-        }
         let tmp3 = document.createElement("p");
         qelem.appendChild(tmp3);
     }

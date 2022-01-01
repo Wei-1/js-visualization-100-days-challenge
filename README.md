@@ -93,4 +93,6 @@ Some testing styles for other personal projects
 1. [Survey - Rating, Matrix](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-29.html)
 1. [Survey - Drop-Down, Open-Ended, Message](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-30.html)
 1. [Survey - Matching, Click-Map, Slider](https://wei-1.github.io/js-visualization-100-days-challenge/2021-12-31.html)
-1. [Survey - Upload-File, Take-Picture](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Survey - Upload-File, Take-Picture](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-01.html)
+1. [Survey - Audio, Video](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-02.html)
+1. [Survey - Multi-Media Player](https://wei-1.github.io/js-visualization-100-days-challenge/)
