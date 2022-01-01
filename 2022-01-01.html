@@ -303,26 +303,6 @@ function getTestSurvey(){
         "page": 5,
         "data": {}
     });
-    // audio
-    questions.push({
-        "name": "Test Audio Record Question",
-        "id": "T-0-Q-12",
-        "type": "audio",
-        "text": "Q-12 Description",
-        "must": false,
-        "page": 6,
-        "data": {}
-    });
-    // video
-    questions.push({
-        "name": "Test Video Record Question",
-        "id": "T-0-Q-13",
-        "type": "video",
-        "text": "Q-13 Description",
-        "must": false,
-        "page": 6,
-        "data": {}
-    });
     return {
         "name": "Test Survey",
         "id": "T-0",
@@ -744,7 +724,7 @@ function drawQuesSlider(qelem, question, report){
 function drawQuesUpload(qelem, question, report){
     let data = question['data'];
     let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("input");
+    let tmp0 = document.createElement("INPUT");
     tmp0.setAttribute("type", "file");
     if(data['multiple']){
         tmp0.setAttribute("multiple", "");
@@ -794,104 +774,12 @@ function drawQuesUpload(qelem, question, report){
 function drawQuesCapture(qelem, question, report){
     let data = question['data'];
     let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("input");
+    let tmp0 = document.createElement("INPUT");
     tmp0.setAttribute("type", "file");
     tmp0.setAttribute("accept", "image/*");
     tmp0.setAttribute("capture", "");
     qelem.appendChild(tmp0);
     let initText = "Take a photo with the camera.";
-    let tmp1 = document.createElement("p");
-    tmp1.innerHTML = initText;
-    qelem.appendChild(tmp1);
-    tmp0.onchange = function(){
-        let txt = "";
-        if('files' in tmp0){
-            if(tmp0.files.length == 0){
-                txt = initText;
-            }else{
-                let files = tmp0.files;
-                for(let i = 0; i < files.length; i++){
-                    txt += "<strong>" + (i+1) + ": </strong>";
-                    let file = files[i];
-                    if('name' in file){
-                        txt += file.name + "<br>";
-                    }
-                    if('size' in file){
-                        txt += "size: " + file.size + " bytes<br>";
-                    }
-                    txt += "<br>";
-                }
-                answer['data'] = files;
-                console.log(answer);
-            }
-        }else{
-            if(tmp0.value == ""){
-                txt = initText;
-            }else{
-                txt = "The files property is not supported by your browser!<br>The path of the selected file: " + tmp0.value;
-            }
-        }
-        tmp1.innerHTML = txt;
-    }
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawQuesAudio(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("input");
-    tmp0.setAttribute("type", "file");
-    tmp0.setAttribute("accept", "audio/*");
-    tmp0.setAttribute("capture", "");
-    qelem.appendChild(tmp0);
-    let initText = "Record an audio with the microphone.";
-    let tmp1 = document.createElement("p");
-    tmp1.innerHTML = initText;
-    qelem.appendChild(tmp1);
-    tmp0.onchange = function(){
-        let txt = "";
-        if('files' in tmp0){
-            if(tmp0.files.length == 0){
-                txt = initText;
-            }else{
-                let files = tmp0.files;
-                for(let i = 0; i < files.length; i++){
-                    txt += "<strong>" + (i+1) + ": </strong>";
-                    let file = files[i];
-                    if('name' in file){
-                        txt += file.name + "<br>";
-                    }
-                    if('size' in file){
-                        txt += "size: " + file.size + " bytes<br>";
-                    }
-                    txt += "<br>";
-                }
-                answer['data'] = files;
-                console.log(answer);
-            }
-        }else{
-            if(tmp0.value == ""){
-                txt = initText;
-            }else{
-                txt = "The files property is not supported by your browser!<br>The path of the selected file: " + tmp0.value;
-            }
-        }
-        tmp1.innerHTML = txt;
-    }
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawQuesVideo(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("input");
-    tmp0.setAttribute("type", "file");
-    tmp0.setAttribute("accept", "video/*");
-    tmp0.setAttribute("capture", "");
-    qelem.appendChild(tmp0);
-    let initText = "Record a video with the camera.";
     let tmp1 = document.createElement("p");
     tmp1.innerHTML = initText;
     qelem.appendChild(tmp1);
@@ -983,12 +871,6 @@ function drawQuestion(selem, question, report){
             break;
         case 'capture':
             drawQuesCapture(qelem, question, report);
-            break;
-        case 'audio':
-            drawQuesAudio(qelem, question, report);
-            break;
-        case 'video':
-            drawQuesVideo(qelem, question, report);
             break;
         default:
             console.log("Unexpected Question Type");
