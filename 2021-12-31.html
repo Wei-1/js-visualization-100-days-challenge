@@ -281,28 +281,6 @@ function getTestSurvey(){
             "max": 80
         }
     });
-    // upload
-    questions.push({
-        "name": "Test Upload Question",
-        "id": "T-0-Q-10",
-        "type": "upload",
-        "text": "Q-10 Description",
-        "must": false,
-        "page": 5,
-        "data": {
-            "multiple": true
-        }
-    });
-    // capture
-    questions.push({
-        "name": "Test Capture Question",
-        "id": "T-0-Q-11",
-        "type": "capture",
-        "text": "Q-11 Description",
-        "must": false,
-        "page": 5,
-        "data": {}
-    });
     return {
         "name": "Test Survey",
         "id": "T-0",
@@ -537,8 +515,8 @@ function drawQuesDropdown(qelem, question, report){
             tmp1.className = tmp1.className.replace(" w3-show", "");
             console.log(answer);
         }
-        let tmp2 = document.createElement("text");
-        tmp2.className = "w3-bar-item w3-button w3-border";
+        let tmp2 = document.createElement("a");
+        tmp2.className = "w3-bar-item w3-button";
         tmp2.setAttribute('value', i);
         tmp2.innerHTML = " " + options[i];
         tmp2.onclick = setAnswer;
@@ -721,102 +699,6 @@ function drawQuesSlider(qelem, question, report){
     qelem.appendChild(tmp3);
 }
 
-function drawQuesUpload(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("INPUT");
-    tmp0.setAttribute("type", "file");
-    if(data['multiple']){
-        tmp0.setAttribute("multiple", "");
-    }
-    if(data['accept']){
-        tmp0.setAttribute("accept", data['accept']);
-    }
-    qelem.appendChild(tmp0);
-    let initText = "Select one or more files.";
-    let tmp1 = document.createElement("p");
-    tmp1.innerHTML = initText;
-    qelem.appendChild(tmp1);
-    tmp0.onchange = function(){
-        let txt = "";
-        if('files' in tmp0){
-            if(tmp0.files.length == 0){
-                txt = initText;
-            }else{
-                let files = tmp0.files;
-                for(let i = 0; i < files.length; i++){
-                    txt += "<strong>" + (i+1) + ": </strong>";
-                    let file = files[i];
-                    if('name' in file){
-                        txt += file.name + "<br>";
-                    }
-                    if('size' in file){
-                        txt += "size: " + file.size + " bytes<br>";
-                    }
-                    txt += "<br>";
-                }
-                answer['data'] = files;
-                console.log(answer);
-            }
-        }else{
-            if(tmp0.value == ""){
-                txt = initText;
-            }else{
-                txt = "The files property is not supported by your browser!<br>The path of the selected file: " + tmp0.value;
-            }
-        }
-        tmp1.innerHTML = txt;
-    }
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
-function drawQuesCapture(qelem, question, report){
-    let data = question['data'];
-    let answer = findAnswer(report, question['id']);
-    let tmp0 = document.createElement("INPUT");
-    tmp0.setAttribute("type", "file");
-    tmp0.setAttribute("accept", "image/*");
-    tmp0.setAttribute("capture", "");
-    qelem.appendChild(tmp0);
-    let initText = "Select one or more files.";
-    let tmp1 = document.createElement("p");
-    tmp1.innerHTML = initText;
-    qelem.appendChild(tmp1);
-    tmp0.onchange = function(){
-        let txt = "";
-        if('files' in tmp0){
-            if(tmp0.files.length == 0){
-                txt = initText;
-            }else{
-                let files = tmp0.files;
-                for(let i = 0; i < files.length; i++){
-                    txt += "<strong>" + (i+1) + ": </strong>";
-                    let file = files[i];
-                    if('name' in file){
-                        txt += file.name + "<br>";
-                    }
-                    if('size' in file){
-                        txt += "size: " + file.size + " bytes<br>";
-                    }
-                    txt += "<br>";
-                }
-                answer['data'] = files;
-                console.log(answer);
-            }
-        }else{
-            if(tmp0.value == ""){
-                txt = initText;
-            }else{
-                txt = "The files property is not supported by your browser!<br>The path of the selected file: " + tmp0.value;
-            }
-        }
-        tmp1.innerHTML = txt;
-    }
-    let tmp3 = document.createElement("p");
-    qelem.appendChild(tmp3);
-}
-
 const qgeneral = [["name", "h2"], ["text", "p"]];
 function drawQuestion(selem, question, report){
     let qelem = document.createElement("form");
@@ -865,12 +747,6 @@ function drawQuestion(selem, question, report){
             break;
         case 'slider':
             drawQuesSlider(qelem, question, report);
-            break;
-        case 'upload':
-            drawQuesUpload(qelem, question, report);
-            break;
-        case 'capture':
-            drawQuesCapture(qelem, question, report);
             break;
         default:
             console.log("Unexpected Question Type");

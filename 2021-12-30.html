@@ -422,6 +422,13 @@ function drawQuesDropdown(qelem, question, report){
     let tmp0 = document.createElement("button");
     tmp0.className = "w3-button w3-border";
     tmp0.innerHTML = "▼ " + data['text'];
+    tmp0.onclick = function(){
+        if(tmp1.className.indexOf("w3-show") == -1){
+            tmp1.className += " w3-show";
+        }else{
+            tmp1.className = tmp1.className.replace(" w3-show", "");
+        }
+    }
     tmp.appendChild(tmp0);
     let tmp1 = document.createElement("div");
     tmp1.className = "w3-dropdown-content w3-bar-block w3-border";
@@ -430,6 +437,7 @@ function drawQuesDropdown(qelem, question, report){
         function setAnswer(){
             tmp0.innerHTML = "▼ " + options[i];
             answer['data'] = i;
+            tmp1.className = tmp1.className.replace(" w3-show", "");
             console.log(answer);
         }
         let tmp2 = document.createElement("a");
@@ -470,6 +478,7 @@ function drawQuestion(selem, question, report){
     let qelem = document.createElement("form");
     qelem.className = "w3-container w3-card w3-hide";
     qelem.id = question['id'];
+    qelem.setAttribute("onsubmit", "return false");
     if(question['must']){
         let qtmp = document.createElement('p');
         qtmp.style.color = "red";
