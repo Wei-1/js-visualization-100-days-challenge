@@ -1,6 +1,7 @@
 <html>
 <body style="background-color:#000;">
-    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <div id="cards" style="position:absolute;top:0%;left:0%"></div>
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%" onclick="clickE(event)"></canvas>
     <script>
 
 let width = window.innerWidth
@@ -16,78 +17,79 @@ canvas.width  = width;
 canvas.height = height;
 const ctx = canvas.getContext('2d');
 
-const step = 10;
-const size = 20000;
-const speed = 0.4;
-const tRatio1 = 0.001;
-const tRatio2 = 0.015;
-const yRatio = 0.3;
-const sRatio = 20;
-const radius = 200;
+const cx = width / 2;
+const cy = height / 2;
+const radius = Math.min(cx, cy) - 10;
+const rLight = radius / 3;
+const limit = 10;
 
-function updateArr(arr){
-    let tarr = [];
-    for(let i = 0; i < arr.length; i ++){
-        let a = arr[i];
-        a[0] += a[2];
-        a[1] += a[3] + speed * sRatio;
-        tarr.push(a);
+function hue2rgb(p, q, t){
+    if(t < 0) t += 1;
+    if(t > 1) t -= 1;
+    if(t < 1/6) return p + (q - p) * 6 * t;
+    if(t < 1/2) return q;
+    if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+}
+
+function hslToRgb(h, s, l){
+    let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    let p = 2 * l - q;
+    let r = hue2rgb(p, q, h + 1/3);
+    let g = hue2rgb(p, q, h);
+    let b = hue2rgb(p, q, h - 1/3);
+    return [r, g, b];
+}
+
+function dxy2hsl(dx, dy){
+    let r = Math.sqrt(dx * dx + dy * dy);
+    let a = Math.atan2(dx, dy);
+    let h = a / Math.PI / 2;
+    let l = 0.5;
+    if(r < rLight) l += (1 - r / rLight) / 2;
+    else if(r > radius - rLight) l *= (radius - r) / rLight;
+    return [h, 1, l];
+}
+
+let cImageData = ctx.getImageData(0, 0, width, height);
+let cPixels = cImageData.data;
+for(let i = 0; i < width; i ++){
+    for(let j = 0; j < height; j ++){
+        let dx = i - cx;
+        let dy = cy - j;
+        let hsl = dxy2hsl(dx, dy);
+        let r = Math.sqrt(dx * dx + dy * dy);
+        if(r < radius){
+            let k = (j * width + i) * 4;
+            let rgb = hslToRgb(...hsl);
+            cPixels[k+0] = Math.floor(rgb[0] * 256);
+            cPixels[k+1] = Math.floor(rgb[1] * 256);
+            cPixels[k+2] = Math.floor(rgb[2] * 256);
+            cPixels[k+3] = 255;
+        }
     }
-    if(tarr.length > size){
-        tarr.shift();
+}
+ctx.putImageData(cImageData, 0, 0);
+
+function clickE(event){
+    let i = event.x, j = event.y;
+    let k = (j * width + i) * 4;
+    let r = cPixels[k+0];
+    let g = cPixels[k+1];
+    let b = cPixels[k+2];
+    console.log(r, g, b);
+    let cards = document.getElementById('cards');
+    let card = document.createElement('div');
+    let color = "rgb("+r+","+g+","+b+")";
+    card.style.backgroundColor = color;
+    card.style.color = "#000";
+    if(r + g + b < 383) card.style.color = "#fff";
+    card.innerHTML = [r, g, b];
+    cards.prepend(card);
+    if(cards.children.length > limit){
+        cards.removeChild(cards.lastChild);
     }
-    return tarr;
 }
-
-let cx = width / 2, cy = height / 2;
-function updateXY(rad, time){
-    let dx = radius * Math.sin(time * tRatio1 + rad);
-    let dy = radius * Math.cos(time * tRatio1 + rad);
-    return [cx + dx, cy + dy];
-}
-
-function addArr(arr, rad, time, x, y){
-    let dx = speed * Math.sin(time * tRatio2 + rad);
-    let dy = speed * Math.cos(time * tRatio2 + rad);
-    arr.push([x, y, dx, dy]);
-    return arr;
-}
-
-ctx.lineWidth = 2;
-function drawArr(arr){
-    ctx.beginPath();
-    ctx.moveTo(arr[0][0], arr[0][1] * yRatio);
-    for(let i = 1; i < arr.length; i ++){
-        ctx.lineTo(arr[i][0], arr[i][1] * yRatio);
-    }
-    ctx.stroke();
-}
-
-let arr1 = [];
-let arr2 = [];
-let arr3 = [];
-function loop(time){
-    let xy1 = updateXY(0, time);
-    arr1 = updateArr(arr1);
-    arr1 = addArr(arr1, 0, time, xy1[0], xy1[1]);
-    let xy2 = updateXY(Math.PI * 2 / 3, time);
-    arr2 = updateArr(arr2);
-    arr2 = addArr(arr2, Math.PI * 2 / 3, time, xy2[0], xy2[1]);
-    let xy3 = updateXY(Math.PI * 4 / 3, time);
-    arr3 = updateArr(arr3);
-    arr3 = addArr(arr3, Math.PI * 4 / 3, time, xy3[0], xy3[1]);
-    ctx.clearRect(0, 0, width, height);
-    ctx.strokeStyle = "#f88";
-    drawArr(arr1);
-    ctx.strokeStyle = "#8f8";
-    drawArr(arr2);
-    ctx.strokeStyle = "#88f";
-    drawArr(arr3);
-    setTimeout(function(){
-        requestAnimationFrame(loop);
-    }, step);
-}
-requestAnimationFrame(loop);
 
     </script>
 </body>
