@@ -99,4 +99,5 @@ Some testing styles for other personal projects
 1. [Dissolve](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-04.html)
 1. [Spiral Move Up](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-05.html)
 1. [Color Wheel](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-06.html)
-1. [Cellular Noise](https://wei-1.github.io/js-visualization-100-days-challenge/)
+1. [Cellular Noise](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-07.html)
+1. [Global Notification](https://wei-1.github.io/js-visualization-100-days-challenge/)
