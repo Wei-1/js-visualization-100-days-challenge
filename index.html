@@ -1,10 +1,11 @@
 <html>
-<body style="background-color:#000;">
-    <canvas id="canvasgl" style="position:absolute;top:0%;left:0%"></canvas>
-    <canvas id="canvas2d" style="position:absolute;top:0%;left:0%"></canvas>
-    <div id="framerate" style="position:absolute;color:#fff;z-index:1;"></div>
-    <script src="https://pixijs.io/particle-emitter/examples/libs/pixi.js/dist/browser/pixi.js"></script>
-    <script src="https://pixijs.io/particle-emitter/dist/particle-emitter.js"></script>
+<head>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body style="background-color:#fff;">
+    <div class="w3-margin w3-container" id="selection"></div>
+    <hr style="border:1px solid black"/>
+    <div class="w3-margin w3-container" id="gallery"></div>
     <script>
 
 let width = window.innerWidth
@@ -15,217 +16,82 @@ let height = window.innerHeight
 || document.documentElement.clientHeight
 || document.body.clientHeight;
 
-const canvas = document.getElementById('canvasgl');
-canvas.width = width;
-canvas.height = height;
-
-const canvas2d = document.getElementById('canvas2d');
-canvas2d.width = width;
-canvas2d.height = height;
-const ctx = canvas2d.getContext('2d');
-
-const radius = 100;
-const tRatio = 0.003;
-const count = 100;
-const rMin = Math.max(width, height);
-const rMax = rMin * 1.5;
-
-function randomFloat(max, min = 0){
-    return Math.random()*(max-min)+min;
-}
-
-const rendererOptions = {
-    width: width,
-    height: height,
-    view: canvas,
-};
-let stage = new PIXI.Container();
-let emitter = null;
-let renderer = new PIXI.Renderer(rendererOptions);
-let bg = new PIXI.Sprite(PIXI.Texture.WHITE);
-bg.scale.x = width;
-bg.scale.y = height;
-bg.tint = 0x000000;
-stage.addChild(bg);
-let emitterContainer = new PIXI.Container();
-stage.addChild(emitterContainer);
-let updateHook = null;
-let containerHook = null;
-
-const framerate = document.getElementById('framerate');
-
-let config = {
-    "lifetime": {
-        "min": 1,
-        "max": 1
-    },
-    "frequency": 0.001,
-    "emitterLifetime": 0,
-    "maxParticles": 1000,
-    "addAtBack": false,
-    "pos": {
-        "x": 0,
-        "y": 0
-    },
-    "behaviors": [
-        {
-            "type": "alpha",
-            "config": {
-                "alpha": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": 0
-                        },
-                        {
-                            "time": 0.5,
-                            "value": 0.8
-                        },
-                        {
-                            "time": 1,
-                            "value": 1.0
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "moveSpeed",
-            "config": {
-                "speed": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": 200
-                        },
-                        {
-                            "time": 1,
-                            "value": 2000
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "scale",
-            "config": {
-                "scale": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": 0
-                        },
-                        {
-                            "time": 1,
-                            "value": 2
-                        }
-                    ]
-                },
-                "minMult": 1
-            }
-        },
-        {
-            "type": "color",
-            "config": {
-                "color": {
-                    "list": [
-                        {
-                            "time": 0,
-                            "value": "ffaaaa"
-                        },
-                        {
-                            "time": 1,
-                            "value": "ffffff"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "rotation",
-            "config": {
-                "accel": 0,
-                "minSpeed": 20,
-                "maxSpeed": 20,
-                "minStart": 0,
-                "maxStart": 360
-            }
-        },
-        {
-            "type": "textureRandom",
-            "config": {
-                "textures": [
-                    "https://pixijs.io/particle-emitter/examples/images/Sparks.png"
-                ]
-            }
-        },
-        {
-            "type": "spawnShape",
-            "config": {
-                "type": "torus",
-                "data": {
-                    "x": 0,
-                    "y": 0,
-                    "radius": 0,
-                    "innerRadius": 0,
-                    "affectRotation": false
-                }
-            }
-        }
-    ]
-};
-
-window.emitter = emitter = new PIXI.particles.Emitter(
-    emitterContainer,
-    config
-);
-console.log(emitter);
-
-let elapsed = Date.now();
-
-let cx = width / 2;
-let cy = height / 2;
-emitter.updateOwnerPos(cx, cy);
+const gallery = document.getElementById('gallery');
+const selection = document.getElementById('selection');
+const separation = 9;
 
 let arr = [];
-for(let i = 0; i < count; i ++){
-    arr.push([randomFloat(Math.PI * 2), randomFloat(0, -1)]);
+let date = new Date("2021-10-02");
+for(let i = 0; i < 99; i ++){
+    let datestr = date.toISOString().substr(0, 10);
+    if(i % separation == 0){
+        arr.push(datestr);
+    }
+    date.setDate(date.getDate() + 1);
 }
 
-ctx.strokeStyle = "#fff";
-ctx.lineWidth = 2;
-function drawArr(arr, duration){
-    ctx.clearRect(0, 0, width, height);
-    for(let i = 0; i < count; i ++){
-        let a = arr[i];
-        a[1] += duration;
-        if(a[1] > 1){
-            a[0] = randomFloat(Math.PI * 2);
-            a[1] = randomFloat(0, -1);
-        }else if(a[1] > 0){
-            let dx = a[1] * Math.sin(a[0]);
-            let dy = a[1] * Math.cos(a[0]);
-            ctx.beginPath();
-            ctx.moveTo(cx + dx * rMin, cy + dy * rMin);
-            ctx.lineTo(cx + dx * rMax, cy + dy * rMax);
-            ctx.stroke();
+let index = 0;
+function drawSelect(arr){
+    selection.innerHTML = "";
+    for(let i = 0; i < arr.length; i ++){
+        let datestr = arr[i];
+        let dobj = document.createElement('div');
+        if(i == index){
+            dobj.className = "w3-quarter w3-orange";
+        }else{
+            dobj.className = "w3-quarter w3-light-gray";
         }
+        let title = document.createElement('div');
+        title.className = "w3-button";
+        title.style.width = "100%";
+        title.innerHTML = datestr + " +8 Days";
+        title.onclick = function(){
+            index = i;
+            drawiFrame(arr[index]);
+            drawSelect(arr);
+        }
+        dobj.appendChild(title);
+        selection.appendChild(dobj);
+    }
+    {
+        let dobj = document.createElement('div');
+        dobj.className = "w3-quarter";
+        let title = document.createElement('a');
+        title.className = "w3-button w3-purple";
+        title.style.width = "100%";
+        title.innerHTML = "GitHub Page!";
+        title.href = "https://github.com/Wei-1/js-visualization-100-days-challenge";
+        dobj.appendChild(title);
+        selection.appendChild(dobj);
     }
 }
+drawSelect(arr);
 
-function loop(time){
-    let now = Date.now();
-    let duration = (now - elapsed) * 0.001;
-    if(emitter){
-        emitter.update(duration);
+function drawiFrame(datestr){
+    gallery.innerHTML = "";
+    let date = new Date(datestr);
+    for(let i = 0; i < 9; i ++){
+        let datestr = date.toISOString().substr(0, 10);
+        let subpage = "/" + datestr + ".html";
+        let dobj = document.createElement('div');
+        dobj.className = "w3-third";
+        let title = document.createElement('a');
+        title.className = "w3-button w3-light-gray";
+        title.style.width = "100%";
+        title.innerHTML = datestr;
+        title.href = subpage;
+        dobj.appendChild(title);
+        let iframe = document.createElement('iframe');
+        iframe.src = subpage;
+        iframe.title = datestr;
+        iframe.style.border = "none";
+        iframe.style.width = "100%";
+        dobj.appendChild(iframe);
+        gallery.appendChild(dobj);
+        date.setDate(date.getDate() + 1);
     }
-    framerate.innerHTML = `${Math.floor(1000 / (now - elapsed)).toFixed(2)} fps`;
-    renderer.render(stage);
-    drawArr(arr, duration);
-    elapsed = now;
-    requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
+drawiFrame(arr[index]);
 
     </script>
 </body>

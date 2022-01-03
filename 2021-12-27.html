@@ -1,0 +1,262 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body style="background-color:#eee;">
+    <div class="w3-margin" id="survey"></div>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+// Multi Choice, Checkbox - Text
+// Multi Choice, Checkbox - Multi-Media
+// Rating Scale, Matrix Questions,
+// Drop-Down, Open Ended,
+// Ranking, Click-Map, Slider,
+// Upload File, Take Picture,
+// Record Audio, Record Video
+
+const SurveyFormat = {
+    "name": "String",
+    "id": "String",
+    "time": "Long",
+    "text": "String",
+    "data": ["Question"]
+}
+
+const QuestionFormat = {
+    "name": "String",
+    "id": "String",
+    "type": "String",
+    "page": "Int",
+    "data": "Object"
+}
+
+const OptionFormat = {
+    "id": "String",
+    "text": "String",
+    "image": "String", // Optional
+    "audio": "String", // Optional
+    "video": "String"  // Optional
+}
+
+const ReportFormat = {
+    "id": "String", // survey id
+    "time": "Long",
+    "meta": "Object",
+    "data": ["Answer"]
+}
+
+const AnswerFormat = {
+    "id": "String", // question id
+    "data": "Object"
+}
+
+function getTestSurvey(){
+    let questions = [];
+    // multi
+    questions.push({
+        "name": "Test Multi Choice Question",
+        "id": "T-0-Q-0",
+        "type": "multi",
+        "page": 1,
+        "data": {
+            "selection": [{
+                "id": "0",
+                "text": "Test Option Text"
+            }, {
+                "id": "1",
+                "text": "Test Option Image",
+                "image": "Test Option Image"
+            }, {
+                "id": "2",
+                "text": "Test Option Audio",
+                "audio": "Test Option Audio"
+            }, {
+                "id": "3",
+                "text": "Test Option Video",
+                "video": "Test Option Video"
+            }]
+        }
+    });
+    // checkbox
+    questions.push({
+        "name": "Test Checkbox Question",
+        "id": "T-0-Q-1",
+        "type": "checkbox",
+        "page": 2,
+        "data": {
+            "selection": [{
+                "id": "0",
+                "text": "Test Option Text"
+            }, {
+                "id": "1",
+                "text": "Test Option Image",
+                "image": "Test Option Image"
+            }, {
+                "id": "2",
+                "text": "Test Option Audio",
+                "audio": "Test Option Audio"
+            }, {
+                "id": "3",
+                "text": "Test Option Video",
+                "video": "Test Option Video"
+            }]
+        }
+    });
+    return {
+        "name": "Test Survey",
+        "id": "T-0",
+        "time": (new Date()).getTime(),
+        "text": "This is the very first test survey, and the description of it.<br/><br/>Test another line.",
+        "data": questions
+    }
+}
+
+function getReport4Survey(survey){
+    let report = {
+        "id": survey['id'], // survey id
+        "time": (new Date()).getTime(),
+        "meta": {},
+        "data": []
+    };
+    let questions = survey['data'];
+    for(let i = 0; i < questions.length; i ++){
+        report['data'].push({
+            "id": questions[i]['id'],
+            "data": {}
+        })
+    }
+    return report;
+}
+
+function findAnswer(report, id){
+    for(let i = 0; i < report['data'].length; i ++){
+        if(report['data'][i]['id'] == id){
+            return report['data'][i];
+        }
+    }
+    alert("ERROR - NO QUESTION ID: " + id);
+}
+
+function drawQuesMulti(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let answer = findAnswer(report, question['id']);
+    function setAnswer(){
+        let qalist = qelem.children;
+        for(let i = 0; i < qalist.length; i ++){
+            if(qalist[i].type == "radio" && qalist[i].checked){
+                answer['data'] = qalist[i].value;
+            }
+        }
+        console.log(answer);
+    }
+    for(let i = 0; i < options.length; i ++){
+        let tmp0 = document.createElement("p");
+        qelem.appendChild(tmp0);
+        let tmp1 = document.createElement("input");
+        tmp1.className = "w3-radio";
+        tmp1.setAttribute('type', 'radio');
+        tmp1.setAttribute('name', question['id']);
+        tmp1.setAttribute('value', options[i]['id']);
+        tmp1.onclick = setAnswer;
+        qelem.appendChild(tmp1);
+        let tmp2 = document.createElement("label");
+        tmp2.innerHTML = " " + options[i]["text"];
+        qelem.appendChild(tmp2);
+        let tmp3 = document.createElement("p");
+        qelem.appendChild(tmp3);
+    }
+}
+
+function drawQuesCheckbox(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let answer = findAnswer(report, question['id']);
+    function setAnswer(){
+        let qalist = qelem.children;
+        answer['data'] = [];
+        for(let i = 0; i < qalist.length; i ++){
+            if(qalist[i].type == "checkbox" && qalist[i].checked){
+                answer['data'].push(qalist[i].value);
+            }
+        }
+        console.log(answer);
+    }
+    for(let i = 0; i < options.length; i ++){
+        let tmp0 = document.createElement("p");
+        qelem.appendChild(tmp0);
+        let tmp1 = document.createElement("input");
+        tmp1.className = "w3-check";
+        tmp1.setAttribute('type', 'checkbox');
+        tmp1.setAttribute('value', options[i]['id']);
+        tmp1.onclick = setAnswer;
+        qelem.appendChild(tmp1);
+        let tmp2 = document.createElement("label");
+        tmp2.innerHTML = " " + options[i]["text"];
+        qelem.appendChild(tmp2);
+        let tmp3 = document.createElement("p");
+        qelem.appendChild(tmp3);
+    }
+}
+
+function drawQuesRating(qelem, question, report){
+}
+
+const qgeneral = [["name", "h2"]];
+function drawQuestion(selem, question, report){
+    let qelem = document.createElement("form");
+    qelem.className = "w3-container w3-card";
+    for(let i = 0; i < qgeneral.length; i ++){
+        let qg = qgeneral[i];
+        let qtmp = document.createElement(qg[1]);
+        qtmp.innerHTML = question[qg[0]];
+        qelem.appendChild(qtmp);
+    }
+    switch(question['type']){
+        case 'multi':
+            drawQuesMulti(qelem, question, report);
+            break;
+        case 'checkbox':
+            drawQuesCheckbox(qelem, question, report);
+            break;
+        case 'rating':
+            drawQuesRating(qelem, question, report);
+            break;
+        default:
+            console.log("Unexpected Question Type");
+            console.log(question);
+    }
+    selem.appendChild(qelem);
+}
+
+const sgeneral = [["id", "label"], ["name", "h1"], ["text", "p"]];
+function drawSurvey(survey, report){
+    let selem = document.getElementById('survey');
+    selem.innerHTML = "";
+    let questions = survey['data'];
+    for(let i = 0; i < sgeneral.length; i ++){
+        let qg = sgeneral[i];
+        let stmp = document.createElement(qg[1]);
+        stmp.innerHTML = survey[qg[0]];
+        selem.appendChild(stmp);
+    }
+    for(let i = 0; i < questions.length; i ++){
+        drawQuestion(selem, questions[i], report);
+    }
+}
+
+let survey = getTestSurvey();
+let report = getReport4Survey(survey);
+drawSurvey(survey, report);
+
+    </script>
+</body>
+</html>

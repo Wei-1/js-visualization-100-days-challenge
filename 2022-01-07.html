@@ -1,0 +1,107 @@
+<html>
+<body style="background-color:#38c;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 20;
+const size = 300;
+const w = Math.ceil(width / size);
+const h = Math.ceil(height / size);
+const aRatio = 0.1;
+const limit = 10;
+const sMax = 5;
+const dMin = 400;
+const dScale = 0.5;
+
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+}
+
+function randomFloat(max, min = 0){
+    return Math.random() * (max - min) + min;
+}
+
+function randomPoint(i, j){
+    return [randomFloat(size) + i * size,
+        randomFloat(size) + j * size];
+}
+
+let arr = [];
+for(let i = 0; i < w; i ++){
+    for(let j = 0; j < h; j ++){
+        let p1 = randomPoint(i, j);
+        let p2 = randomPoint(i, j);
+        arr.push([p1[0], p1[1], 0, 0, p2[0], p2[1]]);
+    }
+}
+
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < w; i ++){
+        for(let j = 0; j < h; j ++){
+            let k = i * h + j;
+            let a = arr[k];
+            let dx = a[4] - a[0];
+            let dy = a[5] - a[1];
+            if(Math.sqrt(dx * dx + dy * dy) < limit){
+                let p = randomPoint(i, j);
+                a[4] = p[0];
+                a[5] = p[1];
+            }else{
+                a[2] = (1 - aRatio) * a[2] + aRatio * Math.sign(dx) * Math.min(sMax, Math.abs(dx));
+                a[3] = (1 - aRatio) * a[3] + aRatio * Math.sign(dy) * Math.min(sMax, Math.abs(dy));
+                a[0] += a[2];
+                a[1] += a[3];
+            }
+            tarr.push(a);
+        }
+    }
+    return tarr;
+}
+
+function drawArr(arr, time){
+    let cImageData = ctx.getImageData(0, 0, width, height);
+    let cPixels = cImageData.data;
+    for(let i = 0; i < width; i ++){
+        for(let j = 0; j < height; j ++){
+            let k = (j * width + i) * 4;
+            let minD = dMin;
+            for(let ai = 0; ai < arr.length; ai ++){
+                let a = arr[ai];
+                minD = Math.min(minD, dist(a, [i, j]));
+            }
+            cPixels[k+0] = 255;
+            cPixels[k+1] = 255;
+            cPixels[k+2] = 255;
+            cPixels[k+3] = minD * dScale;
+        }
+    }
+    ctx.putImageData(cImageData, 0, 0);
+}
+
+function loop(time){
+    arr = updateArr(arr);
+    ctx.clearRect(0, 0, width, height);
+    drawArr(arr, time);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>

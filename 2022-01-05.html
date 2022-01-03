@@ -1,0 +1,94 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const canvas = document.getElementById('canvas');
+canvas.width  = width;
+canvas.height = height;
+const ctx = canvas.getContext('2d');
+
+const step = 10;
+const size = 20000;
+const speed = 0.4;
+const tRatio1 = 0.001;
+const tRatio2 = 0.015;
+const yRatio = 0.3;
+const sRatio = 20;
+const radius = 200;
+
+function updateArr(arr){
+    let tarr = [];
+    for(let i = 0; i < arr.length; i ++){
+        let a = arr[i];
+        a[0] += a[2];
+        a[1] += a[3] + speed * sRatio;
+        tarr.push(a);
+    }
+    if(tarr.length > size){
+        tarr.shift();
+    }
+    return tarr;
+}
+
+let cx = width / 2, cy = height / 2;
+function updateXY(rad, time){
+    let dx = radius * Math.sin(time * tRatio1 + rad);
+    let dy = radius * Math.cos(time * tRatio1 + rad);
+    return [cx + dx, cy + dy];
+}
+
+function addArr(arr, rad, time, x, y){
+    let dx = speed * Math.sin(time * tRatio2 + rad);
+    let dy = speed * Math.cos(time * tRatio2 + rad);
+    arr.push([x, y, dx, dy]);
+    return arr;
+}
+
+ctx.lineWidth = 2;
+function drawArr(arr){
+    ctx.beginPath();
+    ctx.moveTo(arr[0][0], arr[0][1] * yRatio);
+    for(let i = 1; i < arr.length; i ++){
+        ctx.lineTo(arr[i][0], arr[i][1] * yRatio);
+    }
+    ctx.stroke();
+}
+
+let arr1 = [];
+let arr2 = [];
+let arr3 = [];
+function loop(time){
+    let xy1 = updateXY(0, time);
+    arr1 = updateArr(arr1);
+    arr1 = addArr(arr1, 0, time, xy1[0], xy1[1]);
+    let xy2 = updateXY(Math.PI * 2 / 3, time);
+    arr2 = updateArr(arr2);
+    arr2 = addArr(arr2, Math.PI * 2 / 3, time, xy2[0], xy2[1]);
+    let xy3 = updateXY(Math.PI * 4 / 3, time);
+    arr3 = updateArr(arr3);
+    arr3 = addArr(arr3, Math.PI * 4 / 3, time, xy3[0], xy3[1]);
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = "#f88";
+    drawArr(arr1);
+    ctx.strokeStyle = "#8f8";
+    drawArr(arr2);
+    ctx.strokeStyle = "#88f";
+    drawArr(arr3);
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,863 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body style="background-color:#eee;">
+    <div class="w3-margin" id="survey"></div>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+// Multi Choice, Checkbox
+// Page, Optional, Submit
+// Rating Scale, Matrix Questions,
+// Drop-Down, Open Ended, Message
+// Matching, Click-Map, Slider,
+// Upload File, Take Picture,
+// Record Audio, Record Video
+// Multi-Media Content
+
+const SurveyFormat = {
+    "name": "String",
+    "id": "String",
+    "version": "String",
+    "time": "Long",
+    "text": "String",
+    "data": ["Question"]
+}
+
+const QuestionFormat = {
+    "name": "String",
+    "id": "String",
+    "type": "String",
+    "must": "Boolean",
+    "page": "Int",
+    "data": "Object"
+}
+
+const OptionFormat = {
+    "id": "String",
+    "text": "String",
+    "image": "String", // Optional
+    "audio": "String", // Optional
+    "video": "String"  // Optional
+}
+
+const ReportFormat = {
+    "id": "String", // survey id
+    "version": "String",
+    "time": "Long",
+    "meta": "Object",
+    "data": ["Answer"]
+}
+
+const AnswerFormat = {
+    "id": "String", // question id
+    "data": "Object"
+}
+
+function randomImageLink(){
+    let size = 360;
+    let shift = size / 6;
+    let canvas = document.createElement("canvas");
+    canvas.width  = size;
+    canvas.height = size;
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000';
+    for(let i = 0; i < size; i += shift){
+        for(let j = 0; j < size; j += shift){
+            if(Math.floor(i * j * Math.random()) % 2 == 0){
+                ctx.fillRect(i, j, shift, shift);
+            }
+        }
+    }
+    return canvas.toDataURL();
+}
+
+function getTestSurvey(){
+    let questions = [];
+    // multi
+    questions.push({
+        "name": "Test Multi Choice Question",
+        "id": "T-0-Q-0",
+        "type": "multi",
+        "text": "Q-0 Description",
+        "must": false,
+        "page": 1,
+        "data": {
+            "selection": [{
+                "id": "0",
+                "text": "Test Option Text"
+            }, {
+                "id": "1",
+                "text": "Test Option Image",
+                "image": "Test Option Image"
+            }, {
+                "id": "2",
+                "text": "Test Option Audio",
+                "audio": "Test Option Audio"
+            }, {
+                "id": "3",
+                "text": "Test Option Video",
+                "video": "Test Option Video"
+            }]
+        }
+    });
+    // checkbox
+    questions.push({
+        "name": "Test Checkbox Question",
+        "id": "T-0-Q-1",
+        "type": "checkbox",
+        "text": "Q-1 Description",
+        "must": false,
+        "page": 1,
+        "data": {
+            "selection": [{
+                "id": "0",
+                "text": "Test Option Text"
+            }, {
+                "id": "1",
+                "text": "Test Option Image",
+                "image": "Test Option Image"
+            }, {
+                "id": "2",
+                "text": "Test Option Audio",
+                "audio": "Test Option Audio"
+            }, {
+                "id": "3",
+                "text": "Test Option Video",
+                "video": "Test Option Video"
+            }]
+        }
+    });
+    // rating
+    questions.push({
+        "name": "Test Rating Question",
+        "id": "T-0-Q-2",
+        "type": "rating",
+        "text": "Q-2 Description",
+        "must": false,
+        "page": 2,
+        "data": {
+            "scale": 10,
+            "left": "Bad",
+            "right": "Good"
+        }
+    });
+    // matrix
+    questions.push({
+        "name": "Test Matrix Question",
+        "id": "T-0-Q-3",
+        "type": "matrix",
+        "text": "Q-3 Description",
+        "must": true,
+        "page": 2,
+        "data": {
+            "selection": [{
+                "id": "0",
+                "text": "Pretty Bad"
+            }, {
+                "id": "1",
+                "text": "Bad"
+            }, {
+                "id": "2",
+                "text": "Neither Good nor Bad"
+            }, {
+                "id": "3",
+                "text": "Good"
+            }, {
+                "id": "4",
+                "text": "Very Good"
+            }],
+            "item": [
+                "Is this survey good?",
+                "Are you happy?",
+                "Am I cool?",
+                "Why are you here?"
+            ]
+        }
+    });
+    // dropdown
+    questions.push({
+        "name": "Test Drop-Down Question",
+        "id": "T-0-Q-4",
+        "type": "dropdown",
+        "text": "Q-4 Description",
+        "must": false,
+        "page": 3,
+        "data": {
+            "text": "Select your feedback!",
+            "selection": [
+                "Pretty Bad",
+                "Bad",
+                "Neither Good nor Bad",
+                "Good",
+                "Very Good"
+            ]
+        }
+    });
+    // open
+    questions.push({
+        "name": "Test Open Question",
+        "id": "T-0-Q-5",
+        "type": "open",
+        "text": "Q-5 Description",
+        "must": false,
+        "page": 3,
+        "data": {
+            "text": "Write your feedback!"
+        }
+    });
+    // message
+    questions.push({
+        "name": "Test Message",
+        "id": "T-0-Q-6",
+        "type": "message",
+        "text": "Q-6 Description",
+        "must": false,
+        "page": 3,
+        "data": {}
+    });
+    // match
+    questions.push({
+        "name": "Test Match Question",
+        "id": "T-0-Q-7",
+        "type": "match",
+        "text": "Q-7 Description",
+        "must": false,
+        "page": 4,
+        "data": {
+            "selection": [{
+                "id": "0",
+                "text": "First"
+            }, {
+                "id": "1",
+                "text": "Second"
+            }, {
+                "id": "2",
+                "text": "Third"
+            }],
+            "item": [{
+                "id": "0",
+                "text": "First"
+            }, {
+                "id": "1",
+                "text": "Second"
+            }, {
+                "id": "2",
+                "text": "Third"
+            }]
+        }
+    });
+    // clickmap
+    questions.push({
+        "name": "Test Click-Map Question",
+        "id": "T-0-Q-8",
+        "type": "clickmap",
+        "text": "Q-8 Description",
+        "must": false,
+        "page": 4,
+        "data": {
+            "image": randomImageLink()
+        }
+    });
+    // slider
+    questions.push({
+        "name": "Test Slider Question",
+        "id": "T-0-Q-9",
+        "type": "slider",
+        "text": "Q-9 Description",
+        "must": true,
+        "page": 4,
+        "data": {
+            "default": 40,
+            "min": 0,
+            "max": 80
+        }
+    });
+    return {
+        "name": "Test Survey",
+        "id": "T-0",
+        "version": "0",
+        "time": (new Date()).getTime(),
+        "text": "This is the very first test survey, and the description of it.<br/><br/>Test another line.",
+        "data": questions
+    }
+}
+
+function getReport4Survey(survey){
+    let report = {
+        "id": survey['id'], // survey id
+        "version": survey['version'],
+        "time": (new Date()).getTime(),
+        "meta": {},
+        "data": []
+    };
+    let questions = survey['data'];
+    for(let i = 0; i < questions.length; i ++){
+        report['data'].push({
+            "id": questions[i]['id'],
+            "data": null
+        })
+    }
+    return report;
+}
+
+function getPages(survey){
+    let questions = survey['data'];
+    let pages = [];
+    for(let i = 0; i < questions.length; i ++){
+        pages.push(questions[i]['page']);
+    }
+    return [...new Set(pages)];
+}
+
+function findAnswer(report, id){
+    for(let i = 0; i < report['data'].length; i ++){
+        if(report['data'][i]['id'] == id){
+            return report['data'][i];
+        }
+    }
+    alert("ERROR - NO QUESTION ID: " + id);
+}
+
+function drawQuesMulti(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let answer = findAnswer(report, question['id']);
+    function setAnswer(){
+        let qalist = qelem.children;
+        for(let i = 0; i < qalist.length; i ++){
+            if(qalist[i].type == "radio" && qalist[i].checked){
+                answer['data'] = qalist[i].value;
+            }
+        }
+        console.log(answer);
+    }
+    for(let i = 0; i < options.length; i ++){
+        let tmp0 = document.createElement("p");
+        qelem.appendChild(tmp0);
+        let tmp1 = document.createElement("input");
+        tmp1.className = "w3-radio";
+        tmp1.setAttribute('type', 'radio');
+        tmp1.setAttribute('name', question['id']);
+        tmp1.setAttribute('value', options[i]['id']);
+        tmp1.onclick = setAnswer;
+        qelem.appendChild(tmp1);
+        let tmp2 = document.createElement("label");
+        tmp2.innerHTML = " " + options[i]["text"];
+        qelem.appendChild(tmp2);
+        let tmp3 = document.createElement("p");
+        qelem.appendChild(tmp3);
+    }
+}
+
+function drawQuesCheckbox(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let answer = findAnswer(report, question['id']);
+    function setAnswer(){
+        let qalist = qelem.children;
+        answer['data'] = [];
+        for(let i = 0; i < qalist.length; i ++){
+            if(qalist[i].type == "checkbox" && qalist[i].checked){
+                answer['data'].push(qalist[i].value);
+            }
+        }
+        console.log(answer);
+    }
+    for(let i = 0; i < options.length; i ++){
+        let tmp0 = document.createElement("p");
+        qelem.appendChild(tmp0);
+        let tmp1 = document.createElement("input");
+        tmp1.className = "w3-check";
+        tmp1.setAttribute('type', 'checkbox');
+        tmp1.setAttribute('value', options[i]['id']);
+        tmp1.onclick = setAnswer;
+        qelem.appendChild(tmp1);
+        let tmp2 = document.createElement("label");
+        tmp2.innerHTML = " " + options[i]["text"];
+        qelem.appendChild(tmp2);
+        let tmp3 = document.createElement("p");
+        qelem.appendChild(tmp3);
+    }
+}
+
+function drawQuesRating(qelem, question, report){
+    let data = question['data'];
+    let answer = findAnswer(report, question['id']);
+    function setAnswer(v){
+        let qalist = qelem.children;
+        for(let i = 0; i < qalist.length; i ++){
+            if(qalist[i].type == "rating"){
+                if(qalist[i].innerHTML == v.toString()){
+                    qalist[i].className = "w3-button w3-blue w3-border";
+                }else{
+                    qalist[i].className = "w3-button w3-border";
+                }
+            }
+        }
+        answer['data'] = v;
+        console.log(answer);
+    }
+    let tmp0 = document.createElement("text");
+    tmp0.innerHTML = " " + data['left'] + " ";
+    tmp0.className = "w3-large";
+    qelem.appendChild(tmp0);
+    for(let i = 1; i <= data['scale']; i ++){
+        let tmp1 = document.createElement("a");
+        tmp1.className = "w3-button w3-border";
+        tmp1.setAttribute('type', 'rating');
+        tmp1.onclick = function(){
+            setAnswer(i);
+        }
+        tmp1.innerHTML = i;
+        qelem.appendChild(tmp1);
+    }
+    let tmp2 = document.createElement("text");
+    tmp2.innerHTML = " " + data['right'] + " ";
+    tmp2.className = "w3-large";
+    qelem.appendChild(tmp2);
+    let tmp3 = document.createElement("p");
+    qelem.appendChild(tmp3);
+}
+
+function drawQuesMatrix(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let items = data['item'];
+    let answer = findAnswer(report, question['id']);
+    if(!answer['data']){
+        answer['data'] = {};
+    }
+    let table = document.createElement("table");
+    table.className = "w3-table-all w3-centered";
+    let tmp = document.createElement("tr");
+    tmp.id = question['id'] + "-header";
+    let tmp0 = document.createElement("th");
+    tmp0.className = "w3-left";
+    tmp0.innerHTML = "Questions:";
+    tmp.appendChild(tmp0);
+    for(let i = 0; i < options.length; i ++){
+        let tmp1 = document.createElement("th");
+        tmp1.innerHTML = options[i]['text'];
+        tmp.appendChild(tmp1);
+    }
+    table.appendChild(tmp);
+    for(let i = 0; i < items.length; i ++){
+        let item = items[i];
+        let itemid = question['id'] + "-" + i;
+        let tmp = document.createElement("tr");
+        tmp.id = itemid;
+        function setAnswer(){
+            let qalist = tmp.children;
+            for(let j = 0; j < qalist.length; j ++){
+                let tbtm = qalist[j].children[0];
+                if(tbtm && tbtm.type == "radio" && tbtm.checked){
+                    answer['data'][i] = tbtm.value;
+                }
+            }
+            console.log(answer);
+        }
+        let tmp1 = document.createElement("td");
+        tmp1.className = "w3-left";
+        tmp1.innerHTML = item;
+        tmp.appendChild(tmp1);
+        for(let j = 0; j < options.length; j ++){
+            let tmp1 = document.createElement("td");
+            let tmp2 = document.createElement("input");
+            tmp2.className = "w3-radio";
+            tmp2.setAttribute('type', 'radio');
+            tmp2.setAttribute('name', question['id'] + "-" + i);
+            tmp2.setAttribute('value', options[j]['id']);
+            tmp2.onclick = setAnswer;
+            tmp1.appendChild(tmp2);
+            tmp.appendChild(tmp1);
+        }
+        table.appendChild(tmp);
+    }
+    qelem.appendChild(table);
+    let tmp3 = document.createElement("p");
+    qelem.appendChild(tmp3);
+}
+
+function drawQuesDropdown(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let answer = findAnswer(report, question['id']);
+    let tmp = document.createElement("div");
+    tmp.className = "w3-dropdown-hover";
+    qelem.appendChild(tmp);
+    let tmp0 = document.createElement("button");
+    tmp0.className = "w3-button w3-border";
+    tmp0.innerHTML = "▼ " + data['text'];
+    tmp0.onclick = function(){
+        if(tmp1.className.indexOf("w3-show") == -1){
+            tmp1.className += " w3-show";
+        }else{
+            tmp1.className = tmp1.className.replace(" w3-show", "");
+        }
+    }
+    tmp.appendChild(tmp0);
+    let tmp1 = document.createElement("div");
+    tmp1.className = "w3-dropdown-content w3-bar-block w3-border";
+    tmp.appendChild(tmp1);
+    for(let i = 0; i < options.length; i ++){
+        function setAnswer(){
+            tmp0.innerHTML = "▼ " + options[i];
+            answer['data'] = i;
+            tmp1.className = tmp1.className.replace(" w3-show", "");
+            console.log(answer);
+        }
+        let tmp2 = document.createElement("a");
+        tmp2.className = "w3-bar-item w3-button";
+        tmp2.setAttribute('value', i);
+        tmp2.innerHTML = " " + options[i];
+        tmp2.onclick = setAnswer;
+        tmp1.appendChild(tmp2);
+    }
+    let tmp3 = document.createElement("p");
+    qelem.appendChild(tmp3);
+}
+
+function drawQuesOpen(qelem, question, report){
+    let data = question['data'];
+    let answer = findAnswer(report, question['id']);
+    let tmp0 = document.createElement("textarea");
+    tmp0.className = "w3-large";
+    tmp0.setAttribute("placeholder", data['text']);
+    tmp0.setAttribute("rows", 4);
+    tmp0.style.width = "100%";
+    tmp0.oninput = function(){
+        answer['data'] = tmp0.value;
+        console.log(answer);
+    }
+    qelem.appendChild(tmp0);
+    let tmp3 = document.createElement("p");
+    qelem.appendChild(tmp3);
+}
+
+function drawMessage(qelem, question, report){
+    let answer = findAnswer(report, question['id']);
+    answer['data'] = "message";
+}
+
+function drawQuesMatch(qelem, question, report){
+    let data = question['data'];
+    let options = data['selection'];
+    let items = data['item'];
+    let answer = findAnswer(report, question['id']);
+    let tmp0 = document.createElement("div");
+    tmp0.className = "w3-row";
+    qelem.appendChild(tmp0);
+    let tmp1 = document.createElement("div");
+    tmp1.className = "w3-container w3-third w3-border";
+    tmp1.ondrop = function(event){
+        let tmpI = event.dataTransfer.getData("Text");
+        tmp1.appendChild(document.getElementById(tmpI));
+        setAnswer();
+    }
+    tmp1.ondragover = function(event){
+        event.preventDefault();
+    }
+    tmp0.appendChild(tmp1);
+    let tmp2 = document.createElement("div");
+    tmp2.className = "w3-container w3-third";
+    tmp0.appendChild(tmp2);
+    let tmp3 = document.createElement("div");
+    tmp3.className = "w3-container w3-third";
+    tmp0.appendChild(tmp3);
+    function setAnswer(){
+        let optlist = tmp3.children;
+        answer['data'] = {};
+        for(let i = 0; i < optlist.length; i ++){
+            let tmpO1 = optlist[i];
+            if(tmpO1.children.length > 0){
+                let tmpO2 = tmpO1.children[0];
+                answer['data'][tmpO1.getAttribute("optid")] = tmpO2.getAttribute("itemid");
+            }
+        }
+        console.log(answer);
+    }
+    for(let i = 0; i < items.length; i ++){
+        let item = items[i];
+        let tmp = document.createElement("div");
+        tmp.className = "w3-border";
+        tmp.id = question['id'] + "-item-" + item['id'];
+        tmp.style.cursor = "grab";
+        tmp.style.height = "70px";
+        tmp.setAttribute("itemid", item['id']);
+        tmp.setAttribute("draggable", "true");
+        tmp.setAttribute("ondragstart", "drag(event)");
+        tmp.ondragstart = function(event){
+            event.dataTransfer.setData("Text", tmp.id);
+        }
+        tmp.innerHTML = item['text'];
+        tmp1.appendChild(tmp);
+    }
+    for(let i = 0; i < options.length; i ++){
+        let opt = options[i];
+        let ptmp = document.createElement("div");
+        ptmp.className = "w3-center";
+        ptmp.style.height = "70px";
+        ptmp.innerHTML = opt["text"];
+        tmp2.appendChild(ptmp);
+        let dtmp = document.createElement("div");
+        dtmp.className = "w3-border";
+        dtmp.id = question['id'] + "-option-" + opt['id'];
+        dtmp.style.height = "70px";
+        dtmp.setAttribute("optid", opt['id']);
+        dtmp.ondrop = function(event){
+            if(dtmp.children.length == 0){
+                let tmpI = event.dataTransfer.getData("Text");
+                dtmp.appendChild(document.getElementById(tmpI));
+                setAnswer();
+            }
+        }
+        dtmp.ondragover = function(event){
+            event.preventDefault();
+        }
+        tmp3.appendChild(dtmp);
+    }
+    tmp1.style.height = (items.length * 70) + "px";
+    let tmp4 = document.createElement("p");
+    qelem.appendChild(tmp4);
+}
+
+function drawQuesClickmap(qelem, question, report){
+    let data = question['data'];
+    let answer = findAnswer(report, question['id']);
+    let tmp0 = document.createElement("img");
+    tmp0.src = data['image'];
+    let tmp1 = document.createElement("canvas");
+    tmp1.style.maxWidth  = "100%";
+    tmp1.style.cursor = "pointer";
+    let tctx = tmp1.getContext('2d');
+    tmp0.onload = function(){
+        tmp1.width = tmp0.width;
+        tmp1.height = tmp0.height;
+        tctx.drawImage(tmp0, 0, 0);
+    }
+    tmp1.onclick = function(event){
+        tctx.clearRect(0, 0, tmp1.width, tmp1.height);
+        tctx.drawImage(tmp0, 0, 0);
+        tctx.fillStyle = "#0f0";
+        let x = event.offsetX, y = event.offsetY;
+        tctx.beginPath();
+        tctx.arc(x, y, 5, 0, 2 * Math.PI);
+        tctx.fill();
+        answer['data'] = [x, y];
+        console.log(answer);
+    }
+    qelem.appendChild(tmp1);
+    let tmp3 = document.createElement("p");
+    qelem.appendChild(tmp3);
+}
+
+function drawQuesSlider(qelem, question, report){
+    let data = question['data'];
+    let valueScale = data['max'] - data['min'];
+    let answer = findAnswer(report, question['id']);
+    let tmp0 = document.createElement("div");
+    tmp0.className = "w3-container";
+    let tmp00 = document.createElement("div");
+    tmp00.innerHTML = " " + data['min'] + " ";
+    tmp00.className = "w3-large w3-left";
+    tmp0.appendChild(tmp00);
+    let tmp01 = document.createElement("text");
+    tmp01.innerHTML = " " + data['max'] + " ";
+    tmp01.className = "w3-large w3-right";
+    tmp0.appendChild(tmp01);
+    qelem.appendChild(tmp0);
+    let tmp1 = document.createElement("div");
+    tmp1.className = "w3-gray";
+    tmp1.style.cursor = "pointer";
+    let tmp2 = document.createElement("div");
+    tmp2.className = "w3-container w3-blue w3-center w3-large";
+    tmp2.style.width = Math.round((data['default'] - data['min']) / valueScale * 100) + "%";
+    tmp2.innerHTML = data['default'];
+    answer['data'] = data['default'];
+    tmp1.onclick = function(event){
+        let barWidthP = Math.round(event.offsetX / tmp1.offsetWidth * 100);
+        if(barWidthP >= 0 && barWidthP <= 100){
+            tmp2.style.width = barWidthP + "%";
+            let barValue = Math.round(barWidthP / 100 * valueScale) + data['min'];
+            tmp2.innerHTML = barValue;
+            answer['data'] = barValue;
+            console.log(answer);
+        }
+    }
+    tmp1.appendChild(tmp2);
+    qelem.appendChild(tmp1);
+    let tmp3 = document.createElement("p");
+    qelem.appendChild(tmp3);
+}
+
+const qgeneral = [["name", "h2"], ["text", "p"]];
+function drawQuestion(selem, question, report){
+    let qelem = document.createElement("form");
+    qelem.className = "w3-container w3-card w3-hide";
+    qelem.id = question['id'];
+    qelem.setAttribute("onsubmit", "return false");
+    if(question['must']){
+        let qtmp = document.createElement('p');
+        qtmp.style.color = "red";
+        qtmp.innerHTML = "* Mandatory Question";
+        qelem.appendChild(qtmp);
+    }
+    for(let i = 0; i < qgeneral.length; i ++){
+        let qg = qgeneral[i];
+        let qtmp = document.createElement(qg[1]);
+        qtmp.innerHTML = question[qg[0]];
+        qelem.appendChild(qtmp);
+    }
+    switch(question['type']){
+        case 'multi':
+            drawQuesMulti(qelem, question, report);
+            break;
+        case 'checkbox':
+            drawQuesCheckbox(qelem, question, report);
+            break;
+        case 'rating':
+            drawQuesRating(qelem, question, report);
+            break;
+        case 'matrix':
+            drawQuesMatrix(qelem, question, report);
+            break;
+        case 'dropdown':
+            drawQuesDropdown(qelem, question, report);
+            break;
+        case 'open':
+            drawQuesOpen(qelem, question, report);
+            break;
+        case 'message':
+            drawMessage(qelem, question, report);
+            break;
+        case 'match':
+            drawQuesMatch(qelem, question, report);
+            break;
+        case 'clickmap':
+            drawQuesClickmap(qelem, question, report);
+            break;
+        case 'slider':
+            drawQuesSlider(qelem, question, report);
+            break;
+        default:
+            console.log("Unexpected Question Type");
+            console.log(question);
+    }
+    selem.appendChild(qelem);
+}
+
+function validatePage(survey, report){
+    let questions = survey['data'];
+    let qlist = [];
+    for(let i = 0; i < questions.length; i ++){
+        let q = questions[i];
+        let a = findAnswer(report, q['id']);
+        if(q['page'] == CURRENTPAGE && q['must']){
+            if(!a['data']){
+                qlist.push(q);
+            }else if(q['type'] == 'matrix'){
+                for(let j = 0; j < q['data']['item'].length; j ++){
+                    if(!a['data'][j]){
+                        qlist.push(q);
+                    }
+                }
+            }else if(q['type'] == 'match'){
+                let options = q['data']['selection'];
+                for(let j = 0; j < options.length; j ++){
+                    let opt = options[j];
+                    if(!a['data'][opt['id']]){
+                        qlist.push(q);
+                    }
+                }
+            }
+        }
+    }
+    if(qlist.length > 0){
+        console.log(qlist);
+        return false;
+    }else{
+        return true;
+    }
+}
+
+function drawPage(selem, survey, report){
+    let pages = getPages(survey);
+    let pobj = document.createElement("div");
+    pobj.className = "w3-container w3-bar w3-margin";
+    for(let i = 0; i < pages.length; i ++){
+        let pid = pages[i];
+        let ptmp = document.createElement("a");
+        ptmp.className = "w3-button";
+        ptmp.id = "selem-pages-" + pid;
+        ptmp.onclick = function(){
+            if(validatePage(survey, report)){
+                CURRENTPAGE = pid;
+                showPage(survey, pid);
+            }
+        }
+        ptmp.innerHTML =  pid;
+        pobj.appendChild(ptmp);
+    }
+    selem.appendChild(pobj);
+}
+
+const sgeneral = [["id", "label"], ["name", "h1"], ["text", "p"]];
+function drawSurvey(survey, report){
+    let selem = document.getElementById('survey');
+    selem.innerHTML = "";
+    selem.id = survey['id'];
+    let questions = survey['data'];
+    for(let i = 0; i < sgeneral.length; i ++){
+        let qg = sgeneral[i];
+        let stmp = document.createElement(qg[1]);
+        stmp.innerHTML = survey[qg[0]];
+        selem.appendChild(stmp);
+    }
+    for(let i = 0; i < questions.length; i ++){
+        drawQuestion(selem, questions[i], report);
+    }
+    drawPage(selem, survey, report);
+}
+
+function showPage(survey, page){
+    let questions = survey['data'];
+    for(let i = 0; i < questions.length; i ++){
+        let q = questions[i];
+        let qelem = document.getElementById(q['id']);
+        if(q['page'] == page){
+            qelem.className = "w3-container w3-card";
+        }else{
+            qelem.className = "w3-container w3-card w3-hide";
+        }
+    }
+    let pages = getPages(survey);
+    for(let i = 0; i < pages.length; i ++){
+        let pid = pages[i];
+        let ptmp = document.getElementById("selem-pages-" + pid);
+        if(pid == page){
+            ptmp.className = "w3-button w3-gray";
+        }else{
+            ptmp.className = "w3-button";
+        }
+    }
+}
+
+let survey = getTestSurvey();
+let report = getReport4Survey(survey);
+drawSurvey(survey, report);
+
+let CURRENTPAGE = getPages(survey)[0];
+showPage(survey, CURRENTPAGE);
+
+    </script>
+</body>
+</html>
