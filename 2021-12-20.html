@@ -5,7 +5,7 @@
     <script src="https://unpkg.com/three@0.133.0/build/three.js"></script>
     <script src="https://unpkg.com/three@0.133.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://pixiv.github.io/three-vrm/lib/three-vrm.min.js"></script>
+    <script src="https://pixiv.github.io/three-vrm/packages/three-vrm/lib/three-vrm.min.js"></script>
     <script>
 
 let width = window.innerWidth
@@ -41,7 +41,7 @@ const loader = new THREE.GLTFLoader();
 loader.crossOrigin = 'anonymous';
 
 loader.load(
-    'https://pixiv.github.io/three-vrm/examples/models/three-vrm-girl.vrm',
+    'https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/three-vrm-girl.vrm',
     (gltf) => {
         THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
         THREE.VRM.from(gltf).then((vrm) => {
