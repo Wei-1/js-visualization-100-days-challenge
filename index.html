@@ -20,6 +20,12 @@ const gallery = document.getElementById('gallery');
 const selection = document.getElementById('selection');
 const separation = 9;
 
+let host = window.location.hostname;
+let subdomain = "/js-visualization-100-days-challenge";
+if(host == "localhost"){
+    subdomain = "";
+}
+
 let arr = [];
 let date = new Date("2021-10-02");
 for(let i = 0; i < 99; i ++){
@@ -72,7 +78,7 @@ function drawiFrame(datestr){
     let date = new Date(datestr);
     for(let i = 0; i < 9; i ++){
         let datestr = date.toISOString().substr(0, 10);
-        let subpage = "/" + datestr + ".html";
+        let subpage = subdomain + "/" + datestr + ".html";
         let dobj = document.createElement('div');
         dobj.className = "w3-third";
         let title = document.createElement('a');
