@@ -23,7 +23,7 @@ const renderer = new THREE.WebGLRenderer({canvas: canvas});
 renderer.setSize(width, height);
 
 const camera = new THREE.PerspectiveCamera(30.0, width / height, 0.1, 20.0);
-camera.position.set(0.0, 1.0, 5.0);
+camera.position.set(0.0, 1.0, -5.0);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.screenSpacePanning = true;
@@ -40,6 +40,13 @@ let currentVrm = undefined;
 const loader = new THREE.GLTFLoader();
 loader.crossOrigin = 'anonymous';
 
+let defaultPose = [
+    [TVRMSHBN.LeftUpperArm, [0, 0, 70]],
+    [TVRMSHBN.RightUpperArm, [0, 0, -70]],
+    [TVRMSHBN.LeftLowerArm, [-20, -30, 10]],
+    [TVRMSHBN.RightLowerArm, [-20, 30, -10]]
+];
+
 loader.load(
     'https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/three-vrm-girl.vrm',
     (gltf) => {
@@ -47,7 +54,12 @@ loader.load(
         THREE.VRM.from(gltf).then((vrm) => {
             scene.add(vrm.scene);
             currentVrm = vrm;
-            vrm.humanoid.getBoneNode(TVRMSHBN.Hips).rotation.y = Math.PI;
+            for(let i = 0; i < defaultPose.length; i ++){
+                let pose = defaultPose[i];
+                for(let j = 0; j < 3; j ++){
+                    vrm.humanoid.getBoneNode(pose[0]).rotation["xyz"[j]] = pose[1][j] / 180 * Math.PI;
+                }
+            }
             console.log(vrm);
             printInfo(vrm);
         });
@@ -103,8 +115,8 @@ for(let i = 0; i < infoList.length; i ++){
                 let node = currentVrm.humanoid.getBoneNode(area);
                 let v = item.value / 180 * Math.PI;
                 if(isNaN(v)) v = 0;
-                while(v > 180) v -= 360;
-                while(v < -180) v += 360;
+                while(v > Math.PI) v -= 2 * Math.PI;
+                while(v < -Math.PI) v += 2 * Math.PI;
                 node.rotation[k] = v;
             }
         };
