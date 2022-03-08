@@ -102,3 +102,10 @@ Some testing styles for other personal projects
 1. [Cellular Noise](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-07.html)
 1. [Global Notification](https://wei-1.github.io/js-visualization-100-days-challenge/2022-01-08.html)
 1. [Gallery](https://wei-1.github.io/js-visualization-100-days-challenge/)
+
+
+----
+
+## Extra Practices - VRM
+
+1. [VRM Upload Button](https://wei-1.github.io/js-visualization-100-days-challenge/2022-03-08.html)
