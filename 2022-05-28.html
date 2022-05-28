@@ -1,0 +1,195 @@
+<html>
+<body style="background-color:#000;">
+    <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
+    <div style="position:absolute;top:10px;left:10px">
+        <form id="info" ></form>
+        <input id="vrmbtn" type="file">
+    </div>
+    <script src="https://unpkg.com/three@0.133.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.133.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://pixiv.github.io/three-vrm/packages/three-vrm/lib/three-vrm.min.js"></script>
+    <script>
+
+let width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+
+let height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+
+const step = 20;
+const TVRMSHBN = THREE.VRMSchema.HumanoidBoneName;
+
+const renderer = new THREE.WebGLRenderer({canvas: canvas});
+renderer.setSize(width, height);
+
+const camera = new THREE.PerspectiveCamera(15.0, width / height, 0.1, 20.0);
+camera.position.set(0.0, 2.0, -3.0);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.screenSpacePanning = true;
+controls.target.set(0.0, 1.0, 0.0);
+controls.update();
+
+const scene = new THREE.Scene();
+
+const light = new THREE.DirectionalLight(0xffffff);
+light.position.set(1.0, 1.0, 1.0).normalize();
+scene.add(light);
+
+let currentVrm = undefined;
+const loader = new THREE.GLTFLoader();
+loader.crossOrigin = 'anonymous';
+
+let defaultPose = [
+    [TVRMSHBN.LeftUpperArm, [0, 0, 70]],
+    [TVRMSHBN.RightUpperArm, [0, 0, -70]],
+    [TVRMSHBN.LeftLowerArm, [-20, -30, 10]],
+    [TVRMSHBN.RightLowerArm, [-20, 30, -10]]
+];
+
+const vrmbtn = document.getElementById('vrmbtn');
+vrmbtn.onchange = function(){
+    let txt = "";
+    if('files' in vrmbtn){
+        if(vrmbtn.files.length == 0){
+            txt = "WRONG";
+        }else{
+            let files = vrmbtn.files;
+            let file = files[0];
+            let blob = new Blob([file], {type: "application/octet-stream"});
+            let url = URL.createObjectURL(blob);
+            loadVRM(url);
+        }
+    }else{
+        if(vrmbtn.value == ""){
+            txt = "No file";
+        }else{
+            txt = "The files property is not supported by your browser!<br>The path of the selected file: " + vrmbtn.value;
+        }
+    }
+    console.log(txt);
+}
+
+function loadVRM(vrmurl){
+    loader.load(vrmurl,
+        (gltf) => {
+            THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+            THREE.VRM.from(gltf).then((vrm) => {
+                scene.add(vrm.scene);
+                currentVrm = vrm;
+                for(let i = 0; i < defaultPose.length; i ++){
+                    let pose = defaultPose[i];
+                    for(let j = 0; j < 3; j ++){
+                        vrm.humanoid.getBoneNode(pose[0]).rotation["xyz"[j]] = pose[1][j] / 180 * Math.PI;
+                    }
+                }
+                camera.rotation.set(-3.0, 0.0, -3.14);
+                console.log(vrm);
+                printInfo(vrm);
+            });
+        },
+        (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
+        (error) => console.error(error)
+    );
+}
+
+const clock = new THREE.Clock();
+
+const infoList = [
+    TVRMSHBN.Head,
+    TVRMSHBN.Neck,
+    TVRMSHBN.Chest,
+    TVRMSHBN.Spine,
+    TVRMSHBN.Hips,
+    TVRMSHBN.LeftUpperArm,
+    TVRMSHBN.RightUpperArm,
+    TVRMSHBN.LeftLowerArm,
+    TVRMSHBN.RightLowerArm,
+    TVRMSHBN.LeftUpperLeg,
+    TVRMSHBN.RightUpperLeg,
+    TVRMSHBN.LeftLowerLeg,
+    TVRMSHBN.RightLowerLeg,
+    TVRMSHBN.LeftHand,
+    TVRMSHBN.RightHand,
+    TVRMSHBN.LeftFoot,
+    TVRMSHBN.RightFoot,
+    TVRMSHBN.LeftEye,
+    TVRMSHBN.RightEye
+];
+const info = document.getElementById('info');
+for(let i = 0; i < infoList.length; i ++){
+    let area = infoList[i];
+    let obj = document.createElement('div');
+    let name = document.createElement('text');
+    name.style.color = "#fff";
+    name.style.width = "100px";
+    name.style.display = "inline-block";
+    name.style.textAlign = "right";
+    name.innerHTML = area;
+    obj.appendChild(name);
+    for(let j = 0; j < 3; j ++){
+        let item = document.createElement('input');
+        let k = "xyz"[j];
+        item.id = area + "." + k;
+        item.style.textAlign = "right";
+        item.style.width = "30px";
+        item.value = "x";
+        item.onchange = function(){
+            if(currentVrm){
+                console.log(item.value);
+                let node = currentVrm.humanoid.getBoneNode(area);
+                let v = item.value / 180 * Math.PI;
+                if(isNaN(v)) v = 0;
+                while(v > Math.PI) v -= 2 * Math.PI;
+                while(v < -Math.PI) v += 2 * Math.PI;
+                node.rotation[k] = v;
+            }
+        };
+        obj.appendChild(item);
+    }
+    info.appendChild(obj);
+}
+
+function printInfo(vrm){
+    for(let i = 0; i < infoList.length; i ++){
+        let area = infoList[i];
+        let node = vrm.humanoid.getBoneNode(area);
+        for(let j = 0; j < 3; j ++){
+            let k = "xyz"[j];
+            let item = document.getElementById(area + "." + k);
+            item.value = Math.floor(node.rotation[k] * 180 / Math.PI);
+        }
+    }
+}
+
+function loop(time){
+    if(currentVrm){
+        currentVrm.update(clock.getDelta());
+        renderer.render(scene, camera);
+    }
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+var duration = 0.0;
+function mlloop(time){
+    if(currentVrm){
+        duration += 1;
+        let node = currentVrm.humanoid.getBoneNode(TVRMSHBN.Neck);
+        let v = Math.sin(duration * 0.1) * 0.5;
+        node.rotation.set(v, 0, 0);
+    }
+    setTimeout(function(){
+        requestAnimationFrame(mlloop);
+    }, step * 2);
+}
+requestAnimationFrame(mlloop);
+
+    </script>
+</body>
+</html>
