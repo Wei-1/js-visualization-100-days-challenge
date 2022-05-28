@@ -1,11 +1,15 @@
 <html>
 <body style="background-color:#000;">
     <canvas id="canvas" style="position:absolute;top:0%;left:0%"></canvas>
-    <form id="info" style="position:absolute;top:10px;left:10px"></form>
+    <div style="position:absolute;top:10px;left:10px">
+        <form id="info" ></form>
+        <input id="vrmbtn" type="file">
+    </div>
     <script src="https://unpkg.com/three@0.133.0/build/three.js"></script>
     <script src="https://unpkg.com/three@0.133.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://pixiv.github.io/three-vrm/packages/three-vrm/lib/three-vrm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script>
 
 let width = window.innerWidth
@@ -22,8 +26,8 @@ const TVRMSHBN = THREE.VRMSchema.HumanoidBoneName;
 const renderer = new THREE.WebGLRenderer({canvas: canvas});
 renderer.setSize(width, height);
 
-const camera = new THREE.PerspectiveCamera(30.0, width / height, 0.1, 20.0);
-camera.position.set(0.0, 1.0, -5.0);
+const camera = new THREE.PerspectiveCamera(15.0, width / height, 0.1, 20.0);
+camera.position.set(0.0, 2.0, -3.0);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.screenSpacePanning = true;
@@ -47,26 +51,51 @@ let defaultPose = [
     [TVRMSHBN.RightLowerArm, [-20, 30, -10]]
 ];
 
-loader.load(
-    'https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/three-vrm-girl.vrm',
-    (gltf) => {
-        THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
-        THREE.VRM.from(gltf).then((vrm) => {
-            scene.add(vrm.scene);
-            currentVrm = vrm;
-            for(let i = 0; i < defaultPose.length; i ++){
-                let pose = defaultPose[i];
-                for(let j = 0; j < 3; j ++){
-                    vrm.humanoid.getBoneNode(pose[0]).rotation["xyz"[j]] = pose[1][j] / 180 * Math.PI;
+const vrmbtn = document.getElementById('vrmbtn');
+vrmbtn.onchange = function(){
+    let txt = "";
+    if('files' in vrmbtn){
+        if(vrmbtn.files.length == 0){
+            txt = "WRONG";
+        }else{
+            let files = vrmbtn.files;
+            let file = files[0];
+            let blob = new Blob([file], {type: "application/octet-stream"});
+            let url = URL.createObjectURL(blob);
+            loadVRM(url);
+        }
+    }else{
+        if(vrmbtn.value == ""){
+            txt = "No file";
+        }else{
+            txt = "The files property is not supported by your browser!<br>The path of the selected file: " + vrmbtn.value;
+        }
+    }
+    console.log(txt);
+}
+
+function loadVRM(vrmurl){
+    loader.load(vrmurl,
+        (gltf) => {
+            THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+            THREE.VRM.from(gltf).then((vrm) => {
+                scene.add(vrm.scene);
+                currentVrm = vrm;
+                for(let i = 0; i < defaultPose.length; i ++){
+                    let pose = defaultPose[i];
+                    for(let j = 0; j < 3; j ++){
+                        vrm.humanoid.getBoneNode(pose[0]).rotation["xyz"[j]] = pose[1][j] / 180 * Math.PI;
+                    }
                 }
-            }
-            console.log(vrm);
-            printInfo(vrm);
-        });
-    },
-    (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
-    (error) => console.error(error)
-);
+                camera.rotation.set(-3.0, 0.0, -3.14);
+                console.log(vrm);
+                printInfo(vrm);
+            });
+        },
+        (progress) => console.log('Loading model...', 100.0 * (progress.loaded / progress.total), '%'),
+        (error) => console.error(error)
+    );
+}
 
 const clock = new THREE.Clock();
 
@@ -139,8 +168,8 @@ function printInfo(vrm){
 
 function loop(time){
     if(currentVrm){
-        const deltaTime = clock.getDelta();
-        currentVrm.update(deltaTime);
+        currentVrm.update(clock.getDelta());
+        TWEEN.update();
         renderer.render(scene, camera);
     }
     setTimeout(function(){
@@ -148,6 +177,31 @@ function loop(time){
     }, step);
 }
 requestAnimationFrame(loop);
+
+function updateNode(){
+    let node = currentVrm.humanoid.getBoneNode(TVRMSHBN.Neck);
+    node.rotation.set(nodev.v, 0, 0);
+}
+
+let nodev = {"v": 0};
+let duration = 0.0;
+let tween = null;
+function mlloop(time){
+    if(currentVrm){
+        duration += 1;
+        if(tween){
+            tween.stop();
+        }
+        let v = Math.sin(duration * 0.1) * 0.5;
+        tween = new TWEEN.Tween(nodev).to({"v": v}, 100).easing(TWEEN.Easing.Linear.None)
+            .onUpdate(() => updateNode());
+        tween.start();
+    }
+    setTimeout(function(){
+        requestAnimationFrame(mlloop);
+    }, step * 2);
+}
+requestAnimationFrame(mlloop);
 
     </script>
 </body>
