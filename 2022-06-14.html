@@ -190,6 +190,7 @@ function updateNode(){
     let Cbsp = currentVrm.blendShapeProxy;
     Cbsp.setValue(oldmood, 0);
     Cbsp.setValue(mood, 1);
+    Cbsp.setValue(TVRMSBSPN.A, nodev.m);
 }
 
 function nextMood(){
@@ -198,7 +199,7 @@ function nextMood(){
     return moods[(i + 1) % 5];
 }
 
-let nodev = {"v": 0};
+let nodev = {"v": 0, "m": 0};
 let duration = 0.0;
 let tween = null;
 let mood = TVRMSBSPN.Neutral;
@@ -215,7 +216,8 @@ function mlloop(time){
             console.log(mood);
         }
         let v = Math.sin(duration * 0.1) * 0.2;
-        tween = new TWEEN.Tween(nodev).to({"v": v}, 100).easing(TWEEN.Easing.Linear.None)
+        let m = Math.sin(duration * 0.05);
+        tween = new TWEEN.Tween(nodev).to({"v": v, "m": m}, 100).easing(TWEEN.Easing.Linear.None)
             .onUpdate(() => updateNode());
         tween.start();
     }
