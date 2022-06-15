@@ -77,6 +77,10 @@ vrmbtn.onchange = function(){
 loadVRM('https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/three-vrm-girl.vrm');
 
 function loadVRM(vrmurl){
+    if(currentVrm){
+        scene.remove(currentVrm.scene);
+        currentVrm.dispose();
+    }
     loader.load(vrmurl,
         (gltf) => {
             THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
