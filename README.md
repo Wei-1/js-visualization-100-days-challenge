@@ -112,3 +112,4 @@ Some testing styles for other personal projects
 1. [VRM Motion Mis-Sync](https://wei-1.github.io/js-visualization-100-days-challenge/2022-05-28.html)
 1. [VRM Tween](https://wei-1.github.io/js-visualization-100-days-challenge/2022-05-29.html)
 1. [VRM Mood Swap](https://wei-1.github.io/js-visualization-100-days-challenge/2022-06-14.html)
+1. [VRM Emotion Experiment](https://wei-1.github.io/js-visualization-100-days-challenge/2022-07-17.html)
