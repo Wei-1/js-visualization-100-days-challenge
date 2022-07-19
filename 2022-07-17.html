@@ -104,15 +104,12 @@ function loadVRM(vrmurl){
 
 const clock = new THREE.Clock();
 
-let moods = [TVRMSBSPN.Angry, TVRMSBSPN.Fun, TVRMSBSPN.Joy, TVRMSBSPN.Neutral, TVRMSBSPN.Sorrow, TVRMSBSPN.A, TVRMSBSPN.E, TVRMSBSPN.I, TVRMSBSPN.O, TVRMSBSPN.U];
+let moods = [TVRMSBSPN.Angry, TVRMSBSPN.Fun, TVRMSBSPN.Joy, TVRMSBSPN.Neutral, TVRMSBSPN.Sorrow, TVRMSBSPN.A, TVRMSBSPN.E, TVRMSBSPN.I, TVRMSBSPN.O, TVRMSBSPN.U, TVRMSBSPN.Lookup, TVRMSBSPN.Lookdown, TVRMSBSPN.Lookleft, TVRMSBSPN.Lookright, "Surprised"];
 console.log(moods);
 
 const info = document.getElementById('info');
 for(let i = 0; i < moods.length; i ++){
     let mood = moods[i];
-    let label = document.createElement('label');
-    label.innerHTML = mood;
-    label.style.color = "#fff";
     let range = document.createElement('input');
     range.setAttribute("type", "range");
     range.id = "mood_" + mood;
@@ -120,8 +117,16 @@ for(let i = 0; i < moods.length; i ++){
     range.setAttribute("max", "1");
     range.setAttribute("step", "0.001");
     range.setAttribute("value", "0");
+    let label = document.createElement('label');
+    label.innerHTML = mood;
+    label.style.color = "#fff";
+    let tobj = document.createElement('text');
+    tobj.id = "text_" + mood;
+    tobj.innerHTML = ": 0";
+    tobj.style.color = "#fff";
     info.appendChild(range);
     info.appendChild(label);
+    info.appendChild(tobj);
     info.appendChild(document.createElement("br"));
 }
 
@@ -145,7 +150,13 @@ function updateNode(){
     for(let i = 0; i < moods.length; i ++){
         let mood = moods[i];
         let range = document.getElementById("mood_" + mood);
-        Cbsp.setValue(mood, range.value);
+        if(range){
+            Cbsp.setValue(mood, range.value);
+            let tobj = document.getElementById("text_" + mood);
+            tobj.innerHTML = ": " + range.value;
+        }else{
+            console.log("MISSING: ", mood);
+        }
     }
 }
 
