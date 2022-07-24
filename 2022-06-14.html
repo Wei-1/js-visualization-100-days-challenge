@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/three@0.133.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://pixiv.github.io/three-vrm/packages/three-vrm/lib/three-vrm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script>
 
 let width = window.innerWidth
@@ -20,13 +21,14 @@ let height = window.innerHeight
 || document.body.clientHeight;
 
 const step = 20;
+const TVRMSBSPN = THREE.VRMSchema.BlendShapePresetName;
 const TVRMSHBN = THREE.VRMSchema.HumanoidBoneName;
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas});
 renderer.setSize(width, height);
 
-const camera = new THREE.PerspectiveCamera(30.0, width / height, 0.1, 20.0);
-camera.position.set(0.0, 1.0, -5.0);
+const camera = new THREE.PerspectiveCamera(15.0, width / height, 0.1, 20.0);
+camera.position.set(0.0, 2.0, -3.0);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.screenSpacePanning = true;
@@ -72,6 +74,7 @@ vrmbtn.onchange = function(){
     }
     console.log(txt);
 }
+loadVRM('https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/three-vrm-girl.vrm');
 
 function loadVRM(vrmurl){
     if(currentVrm){
@@ -90,6 +93,7 @@ function loadVRM(vrmurl){
                         vrm.humanoid.getBoneNode(pose[0]).rotation["xyz"[j]] = pose[1][j] / 180 * Math.PI;
                     }
                 }
+                camera.rotation.set(-3.0, 0.0, -3.14);
                 console.log(vrm);
                 printInfo(vrm);
             });
@@ -170,8 +174,8 @@ function printInfo(vrm){
 
 function loop(time){
     if(currentVrm){
-        const deltaTime = clock.getDelta();
-        currentVrm.update(deltaTime);
+        currentVrm.update(clock.getDelta());
+        TWEEN.update();
         renderer.render(scene, camera);
     }
     setTimeout(function(){
@@ -179,6 +183,49 @@ function loop(time){
     }, step);
 }
 requestAnimationFrame(loop);
+
+function updateNode(){
+    let node = currentVrm.humanoid.getBoneNode(TVRMSHBN.Neck);
+    node.rotation.set(nodev.v, 0, 0);
+    let Cbsp = currentVrm.blendShapeProxy;
+    Cbsp.setValue(oldmood, 0);
+    Cbsp.setValue(mood, 1);
+    Cbsp.setValue(TVRMSBSPN.A, nodev.m);
+}
+
+function nextMood(){
+    let moods = [TVRMSBSPN.Angry, TVRMSBSPN.Fun, TVRMSBSPN.Joy, TVRMSBSPN.Neutral, TVRMSBSPN.Sorrow];
+    let i = moods.indexOf(mood);
+    return moods[(i + 1) % 5];
+}
+
+let nodev = {"v": 0, "m": 0};
+let duration = 0.0;
+let tween = null;
+let mood = TVRMSBSPN.Neutral;
+let oldmood = TVRMSBSPN.Neutral;
+function mlloop(time){
+    if(currentVrm){
+        duration += 1;
+        if(tween){
+            tween.stop();
+        }
+        if(duration % 100 == 0){
+            oldmood = mood;
+            mood = nextMood();
+            console.log(mood);
+        }
+        let v = Math.sin(duration * 0.1) * 0.2;
+        let m = Math.sin(duration * 0.05);
+        tween = new TWEEN.Tween(nodev).to({"v": v, "m": m}, 100).easing(TWEEN.Easing.Linear.None)
+            .onUpdate(() => updateNode());
+        tween.start();
+    }
+    setTimeout(function(){
+        requestAnimationFrame(mlloop);
+    }, step * 2);
+}
+requestAnimationFrame(mlloop);
 
     </script>
 </body>

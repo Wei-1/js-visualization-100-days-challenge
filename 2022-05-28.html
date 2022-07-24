@@ -74,6 +74,10 @@ vrmbtn.onchange = function(){
 }
 
 function loadVRM(vrmurl){
+    if(currentVrm){
+        scene.remove(currentVrm.scene);
+        currentVrm.dispose();
+    }
     loader.load(vrmurl,
         (gltf) => {
             THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
