@@ -106,7 +106,7 @@ Some testing styles for other personal projects
 
 ----
 
-## Extra Practices - VRM
+## Extra Practices
 
 1. [VRM Upload Button](https://wei-1.github.io/js-visualization-100-days-challenge/2022-03-08.html) 2022-03-08
 1. [VRM Motion Mis-Sync](https://wei-1.github.io/js-visualization-100-days-challenge/2022-05-28.html) 2022-05-28
