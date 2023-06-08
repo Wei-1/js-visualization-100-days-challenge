@@ -116,3 +116,4 @@ Some testing styles for other personal projects
 1. [VRM Motion All Experiment](https://wei-1.github.io/js-visualization-100-days-challenge/2022-07-28.html) 2022-07-28
 1. [VRM Euler Quaternion Experiment](https://wei-1.github.io/js-visualization-100-days-challenge/2022-07-29.html) 2022-07-29
 1. [WebGPU Game-of-Life](https://wei-1.github.io/js-visualization-100-days-challenge/2023-05-14.html) 2023-05-14
+1. [VRM 0 to 1 Motion Transformer](https://wei-1.github.io/js-visualization-100-days-challenge/2023-06-07.html) 2023-06-07

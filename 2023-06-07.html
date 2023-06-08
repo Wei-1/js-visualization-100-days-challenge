@@ -73,10 +73,15 @@ for(let i in vrmNameList){
             const vrm = gltf.userData.vrm;
             VRMUtils.removeUnnecessaryVertices(gltf.scene);
             VRMUtils.removeUnnecessaryJoints(gltf.scene);
+
             scene.add(vrm.scene);
             console.log(vrm);
             printInfo(vrm);
 
+            if (vrm.meta.metaVersion === '1') {
+                let node = vrm.humanoid.getNormalizedBoneNode("hips");
+                node.rotation['y'] = Math.PI;
+            }
 
             let obj = {};
             obj["renderer"] = renderer;
@@ -120,12 +125,18 @@ for(let i = 0; i < infoList.length; i ++){
         item.value = "x";
         item.onchange = function(){
             for(let obj of objList){
-                console.log(item.value);
                 let node = obj["vrm"].humanoid.getNormalizedBoneNode(area);
                 let v = item.value / 180 * Math.PI;
                 if(isNaN(v)) v = 0;
                 while(v > Math.PI) v -= 2 * Math.PI;
                 while(v < -Math.PI) v += 2 * Math.PI;
+
+                if (obj["vrm"].meta.metaVersion === '1') {
+                    if(k == "x" || k == "z"){
+                        v *= -1;
+                    }
+                }
+
                 node.rotation[k] = v;
             }
         };
@@ -137,7 +148,6 @@ for(let i = 0; i < infoList.length; i ++){
 function printInfo(vrm){
     for(let i = 0; i < infoList.length; i ++){
         let area = infoList[i];
-        console.log(area);
         let node = vrm.humanoid.getNormalizedBoneNode(area);
         for(let j = 0; j < 3; j ++){
             let k = "xyz"[j];
