@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <button id="webcamButton" style="z-index: 5">
+        <span>ENABLE WEBCAM</span>
+    </button>
+    <div id="liveView" class="videoView">
+        <video id="webcam" style="position: absolute; left: 0px; top: 0px; z-index: -1" autoplay playsinline></video>
+        <canvas id="outputCanvas" style="position: absolute; left: 0px; top: 0px; z-index: -1; transform: scale(-1, 1);"></canvas>
+    </div>
+    <script>
+
+let capture = document.getElementById("webcam");
+
+const step = 50;
+const defaultWidth = 640,
+    defaultHeight = 480;
+const scaleWidth = {
+    min: defaultWidth
+};
+const scaleHeight = {
+    min: defaultHeight
+};
+capture.width = defaultWidth;
+capture.height = defaultHeight;
+
+// read video from webcam
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+            facingMode: 'user',
+            width: scaleWidth,
+            height: scaleHeight,
+        }
+    }).then(function(stream) {
+        console.log("video initialized");
+        window.stream = stream;
+        capture.srcObject = stream;
+        capture.width = capture.videoWidth;
+        capture.height = capture.videoHeight;
+    });
+    return capture;
+}
+
+let button = document.getElementById("webcamButton");
+button.onclick = function(){
+    startCamera();
+}
+
+let canvas = document.getElementById("outputCanvas");
+canvas.width  = capture.width;
+canvas.height = capture.height;
+let ctx = canvas.getContext('2d');
+
+function loop(time){
+    ctx.clearRect(0, 0, capture.width, capture.height);
+    ctx.drawImage(capture, 0, 0);
+
+    setTimeout(function(){
+        requestAnimationFrame(loop);
+    }, step);
+}
+requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
