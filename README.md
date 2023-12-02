@@ -118,3 +118,4 @@ Some testing styles for other personal projects
 1. [WebGPU Game-of-Life](https://wei-1.github.io/js-visualization-100-days-challenge/2023-05-14.html) 2023-05-14
 1. [VRM 0 to 1 Motion Transformer](https://wei-1.github.io/js-visualization-100-days-challenge/2023-06-07.html) 2023-06-07
 1. [Mobile Webcam Capture Test](https://wei-1.github.io/js-visualization-100-days-challenge/2023-10-18.html) 2023-10-18
+1. [Company Logo](https://wei-1.github.io/js-visualization-100-days-challenge/2023-12-02.html) 2023-12-02
